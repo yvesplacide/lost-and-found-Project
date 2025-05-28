@@ -7,6 +7,8 @@ import connectDB from './config/db.js'; // <-- MODIFIÉ, notez le .js
 import authRoutes from './routes/authRoutes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'; // <-- AJOUTÉ
 import declarationRoutes from './routes/declarationRoutes.js'; // <-- AJOUTÉ
+import userRoutes from './routes/userRoutes.js';           // <-- AJOUTÉ
+import commissariatRoutes from './routes/commissariatRoutes.js'; 
 
 
 
@@ -37,6 +39,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/declarations', declarationRoutes); // <-- AJOUTÉ
 app.use(notFound);
 app.use(errorHandler);
+app.use('/api/users', userRoutes);             // <-- AJOUTÉ
+app.use('/api/commissariats', commissariatRoutes); // <-- AJOUTÉ
 
 const PORT = process.env.PORT || 5000;
 
