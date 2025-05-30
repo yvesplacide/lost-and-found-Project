@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext'; // Notre hook d'authentification
 import { toast } from 'react-toastify';
+import '../styles/Auth.css'; // Import du nouveau CSS
+
 
 function AuthPage() {
     const [isRegistering, setIsRegistering] = useState(false); // Pour basculer entre Login et Register
@@ -67,80 +69,109 @@ function AuthPage() {
     };
 
     return (
-        <div className="auth-page">
-            <h2>{isRegistering ? "Inscription" : "Connexion"}</h2>
-            <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
-                {isRegistering && (
-                    <>
-                        <div className="form-group">
-                            <label htmlFor="firstName">Prénom</label>
-                            <input
-                                type="text"
-                                id="firstName"
-                                {...register('firstName', { required: 'Le prénom est requis' })}
-                            />
-                            {errors.firstName && <span className="error-message">{errors.firstName.message}</span>}
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="lastName">Nom</label>
-                            <input
-                                type="text"
-                                id="lastName"
-                                {...register('lastName', { required: 'Le nom est requis' })}
-                            />
-                            {errors.lastName && <span className="error-message">{errors.lastName.message}</span>}
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="phone">Téléphone (optionnel)</label>
-                            <input
-                                type="text"
-                                id="phone"
-                                {...register('phone', { pattern: { value: /^[0-9]{10}$/, message: 'Numéro de téléphone invalide (10 chiffres)' } })}
-                            />
-                            {errors.phone && <span className="error-message">{errors.phone.message}</span>}
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="address">Adresse (optionnel)</label>
-                            <input
-                                type="text"
-                                id="address"
-                                {...register('address')}
-                            />
-                        </div>
-                    </>
-                )}
-
-                <div className="form-group">
-                    <label htmlFor="email">Email</label>
-                    <input
-                        type="email"
-                        id="email"
-                        {...register('email', { required: 'L\'email est requis', pattern: { value: /^\S+@\S+$/i, message: 'Adresse email invalide' } })}
-                    />
-                    {errors.email && <span className="error-message">{errors.email.message}</span>}
+        <div className="auth-container">
+            <div className="auth-card">
+                <div className="auth-header">
+                    <h2>{isRegistering ? "Inscription" : "Connexion"}</h2>
+                    <p>{isRegistering ? "Créez votre compte" : "Connectez-vous à votre compte"}</p>
                 </div>
 
-                <div className="form-group">
-                    <label htmlFor="password">Mot de passe</label>
-                    <input
-                        type="password"
-                        id="password"
-                        {...register('password', { required: 'Le mot de passe est requis', minLength: { value: 6, message: 'Le mot de passe doit contenir au moins 6 caractères' } })}
-                    />
-                    {errors.password && <span className="error-message">{errors.password.message}</span>}
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    {isRegistering && (
+                        <>
+                            <div className="form-group">
+                                <label htmlFor="firstName">Prénom</label>
+                                <input
+                                    type="text"
+                                    id="firstName"
+                                    placeholder="Votre prénom"
+                                    {...register('firstName', { required: 'Le prénom est requis' })}
+                                />
+                                {errors.firstName && <span className="error-message">{errors.firstName.message}</span>}
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="lastName">Nom</label>
+                                <input
+                                    type="text"
+                                    id="lastName"
+                                    placeholder="Votre nom"
+                                    {...register('lastName', { required: 'Le nom est requis' })}
+                                />
+                                {errors.lastName && <span className="error-message">{errors.lastName.message}</span>}
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="phone">Téléphone (optionnel)</label>
+                                <input
+                                    type="text"
+                                    id="phone"
+                                    placeholder="Votre numéro de téléphone"
+                                    {...register('phone', { pattern: { value: /^[0-9]{10}$/, message: 'Numéro de téléphone invalide (10 chiffres)' } })}
+                                />
+                                {errors.phone && <span className="error-message">{errors.phone.message}</span>}
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="address">Adresse (optionnel)</label>
+                                <input
+                                    type="text"
+                                    id="address"
+                                    placeholder="Votre adresse"
+                                    {...register('address')}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    <div className="form-group">
+                        <label htmlFor="email">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="Votre email"
+                            {...register('email', { 
+                                required: 'L\'email est requis', 
+                                pattern: { 
+                                    value: /^\S+@\S+$/i, 
+                                    message: 'Adresse email invalide' 
+                                } 
+                            })}
+                        />
+                        {errors.email && <span className="error-message">{errors.email.message}</span>}
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="password">Mot de passe</label>
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Votre mot de passe"
+                            {...register('password', { 
+                                required: 'Le mot de passe est requis', 
+                                minLength: { 
+                                    value: 6, 
+                                    message: 'Le mot de passe doit contenir au moins 6 caractères' 
+                                } 
+                            })}
+                        />
+                        {errors.password && <span className="error-message">{errors.password.message}</span>}
+                    </div>
+
+                    <button type="submit" className="btn primary-btn">
+                        {isRegistering ? "S'inscrire" : "Se connecter"}
+                    </button>
+                </form>
+
+                <div className="auth-footer">
+                    <p>
+                        {isRegistering ? "Déjà un compte ?" : "Pas encore de compte ?"}
+                        <button 
+                            onClick={() => setIsRegistering(!isRegistering)} 
+                            className="btn secondary-btn"
+                        >
+                            {isRegistering ? "Se connecter" : "S'inscrire"}
+                        </button>
+                    </p>
                 </div>
-
-                <button type="submit" className="btn primary-btn">
-                    {isRegistering ? "S'inscrire" : "Se connecter"}
-                </button>
-            </form>
-
-            <p className="auth-switch">
-                {isRegistering ? "Déjà un compte ?" : "Pas encore de compte ?"}
-                <button onClick={() => setIsRegistering(!isRegistering)} className="btn text-btn">
-                    {isRegistering ? "Se connecter" : "S'inscrire"}
-                </button>
-            </p>
+            </div>
         </div>
     );
 }
