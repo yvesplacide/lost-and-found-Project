@@ -1,0 +1,156 @@
+.new-declaration-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.page-header h2 {
+    color: var(--secondary-color);
+    font-size: 2.5em;
+    margin-bottom: 1rem;
+}
+
+.page-header p {
+    color: var(--text-light);
+    font-size: 1.2em;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.declaration-form-container {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+.declaration-form-container h3 {
+    color: var(--secondary-color);
+    font-size: 1.8em;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.declaration-form {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--secondary-color);
+    font-weight: 500;
+    font-size: 1.1em;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 1em;
+    transition: var(--transition);
+    background-color: white;
+color: black;
+
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-control::placeholder {
+    color: var(--text-light);
+    opacity: 0.7;
+}
+
+.form-control:disabled {
+    background-color: var(--light-bg);
+    cursor: not-allowed;
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+}
+
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.error-message {
+    color: var(--danger-color);
+    font-size: 0.9em;
+    margin-top: 0.5rem;
+}
+
+.object-details,
+.person-details {
+    background: var(--light-bg);
+    padding: 1.5rem;
+    border-radius: var(--radius-sm);
+    margin-top: 1.5rem;
+}
+
+.object-details h4,
+.person-details h4 {
+    color: var(--secondary-color);
+    font-size: 1.4em;
+    margin-bottom: 1.5rem;
+}
+
+.btn.primary-btn {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 2rem;
+}
+
+.btn.primary-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 768px) {
+    .new-declaration-page {
+        padding: 1rem;
+    }
+
+    .page-header h2 {
+        font-size: 2em;
+    }
+
+    .page-header p {
+        font-size: 1.1em;
+    }
+
+    .declaration-form-container {
+        padding: 1.5rem;
+    }
+} 

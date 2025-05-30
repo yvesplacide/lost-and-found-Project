@@ -37,31 +37,28 @@ const createUser = asyncHandler(async (req, res) => {
     const userExists = await User.findOne({ email });
     if (userExists) {
         res.status(400);
-        throw new Error('User with this email already exists');
+        throw new Error('Un utilisateur avec cet email existe déjà');
     }
 
     // Valider le rôle
     if (role && !Object.values(ROLES).includes(role)) {
         res.status(400);
-        throw new Error('Invalid role specified');
+        throw new Error('Rôle invalide');
     }
 
-    let assignedCommissariat = null;
+    // Vérifier le commissariat si c'est un agent
+    let commissariat = null;
     if (role === ROLES.COMMISSARIAT_AGENT) {
         if (!commissariatId) {
             res.status(400);
-            throw new Error('Commissariat ID is required for a commissariat agent');
+            throw new Error('L\'ID du commissariat est requis pour un agent de commissariat');
         }
-        assignedCommissariat = await Commissariat.findById(commissariatId);
-        if (!assignedCommissariat) {
+        commissariat = await Commissariat.findById(commissariatId);
+        if (!commissariat) {
             res.status(404);
-            throw new Error('Assigned Commissariat not found');
+            throw new Error('Commissariat non trouvé');
         }
-    } else if (commissariatId && role !== ROLES.COMMISSARIAT_AGENT) {
-         res.status(400);
-         throw new Error('Commissariat ID should only be provided for commissariat agents');
     }
-
 
     const user = await User.create({
         firstName,
@@ -70,8 +67,8 @@ const createUser = asyncHandler(async (req, res) => {
         password,
         phone,
         address,
-        role: role || ROLES.USER, // Si pas de rôle spécifié, par défaut 'user'
-        commissariat: assignedCommissariat ? assignedCommissariat._id : undefined // Assigner le commissariat pour les agents
+        role: role || ROLES.USER,
+        commissariat: role === ROLES.COMMISSARIAT_AGENT ? commissariatId : undefined
     });
 
     if (user) {
@@ -83,11 +80,11 @@ const createUser = asyncHandler(async (req, res) => {
             phone: user.phone,
             address: user.address,
             role: user.role,
-            commissariat: user.commissariat, // Inclure le commissariat si pertinent
+            commissariat: user.commissariat
         });
     } else {
         res.status(400);
-        throw new Error('Invalid user data');
+        throw new Error('Données utilisateur invalides');
     }
 });
 
@@ -105,12 +102,12 @@ const updateUser = asyncHandler(async (req, res) => {
         user.phone = phone || user.phone;
         user.address = address || user.address;
 
-        // L'email peut être mis à jour, mais vérifier l'unicité
+        // Vérifier l'email
         if (email && email !== user.email) {
             const userWithNewEmail = await User.findOne({ email });
             if (userWithNewEmail) {
                 res.status(400);
-                throw new Error('Email is already taken');
+                throw new Error('Cet email est déjà utilisé');
             }
             user.email = email;
         }
@@ -120,27 +117,25 @@ const updateUser = asyncHandler(async (req, res) => {
             user.role = role;
         } else if (role && !Object.values(ROLES).includes(role)) {
             res.status(400);
-            throw new Error('Invalid role specified');
+            throw new Error('Rôle invalide');
         }
 
-        // Mettre à jour le commissariat pour les agents
+        // Gérer le commissariat pour les agents
         if (user.role === ROLES.COMMISSARIAT_AGENT) {
             if (commissariatId) {
-                const assignedCommissariat = await Commissariat.findById(commissariatId);
-                if (!assignedCommissariat) {
+                const commissariat = await Commissariat.findById(commissariatId);
+                if (!commissariat) {
                     res.status(404);
-                    throw new Error('Assigned Commissariat not found');
+                    throw new Error('Commissariat non trouvé');
                 }
-                user.commissariat = assignedCommissariat._id;
+                user.commissariat = commissariatId;
             } else {
-                // Si le rôle est agent et qu'il n'y a pas de commissariatId, le supprimer
-                user.commissariat = undefined;
+                res.status(400);
+                throw new Error('L\'ID du commissariat est requis pour un agent de commissariat');
             }
         } else {
-             // Si le rôle n'est pas agent, s'assurer que le champ commissariat est vide
-             user.commissariat = undefined;
+            user.commissariat = undefined;
         }
-
 
         const updatedUser = await user.save();
 
@@ -152,11 +147,11 @@ const updateUser = asyncHandler(async (req, res) => {
             phone: updatedUser.phone,
             address: updatedUser.address,
             role: updatedUser.role,
-            commissariat: updatedUser.commissariat,
+            commissariat: updatedUser.commissariat
         });
     } else {
         res.status(404);
-        throw new Error('User not found');
+        throw new Error('Utilisateur non trouvé');
     }
 });
 

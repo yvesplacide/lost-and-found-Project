@@ -85,7 +85,9 @@ const loginUser = asyncHandler(async (req, res) => {
 // @access  Private
 const getMe = asyncHandler(async (req, res) => {
     // req.user est défini par le middleware protect
-    const user = await User.findById(req.user._id).select('-password');
+    const user = await User.findById(req.user._id)
+        .select('-password')
+        .populate('commissariat', 'name city');
 
     if (user) {
         res.json({
@@ -96,6 +98,7 @@ const getMe = asyncHandler(async (req, res) => {
             phone: user.phone,
             address: user.address,
             role: user.role,
+            commissariat: user.commissariat
         });
     } else {
         res.status(404);

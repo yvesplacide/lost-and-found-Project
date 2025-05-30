@@ -2,35 +2,38 @@
 import express from 'express';
 import {
     createDeclaration,
+    getDeclarations,
     getMyDeclarations,
-    getAllDeclarations,
     getDeclarationById,
-    updateDeclarationStatus,
-    deleteDeclaration
+    updateDeclaration,
+    deleteDeclaration,
+    getDeclarationsByCommissariat,
+    updateDeclarationStatus
 } from '../controllers/declarationController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
-import ROLES from '../config/roles.js';
+import upload from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
-// Routes accessibles par différents rôles
+// Créer une déclaration (protégé pour les utilisateurs connectés, role: 'user')
+router.post('/', protect, authorize('user'), upload.array('photos', 5), createDeclaration);
 
-// Créer une déclaration (uniquement les utilisateurs standard)
-router.post('/', protect, authorize(ROLES.USER), createDeclaration);
+// Obtenir toutes les déclarations (accessible uniquement par l'admin)
+router.get('/', protect, authorize('admin'), getDeclarations);
 
-// Obtenir ses propres déclarations (uniquement les utilisateurs standard)
-router.get('/my-declarations', protect, authorize(ROLES.USER), getMyDeclarations);
+// Obtenir les déclarations de l'utilisateur connecté
+router.get('/my-declarations', protect, authorize('user'), getMyDeclarations);
 
-// Obtenir toutes les déclarations (agents de commissariat et administrateurs)
-router.get('/', protect, authorize(ROLES.COMMISSARIAT_AGENT, ROLES.ADMIN), getAllDeclarations);
+// Obtenir les déclarations par commissariat
+router.get('/commissariat/:commissariatId', protect, authorize('commissariat_agent', 'admin'), getDeclarationsByCommissariat);
 
-// Obtenir une déclaration spécifique par ID (tous les rôles autorisés)
-router.get('/:id', protect, authorize(ROLES.USER, ROLES.COMMISSARIAT_AGENT, ROLES.ADMIN), getDeclarationById);
+// Routes pour une déclaration spécifique
+router.route('/:id')
+    .get(protect, getDeclarationById)
+    .put(protect, authorize('admin', 'commissariat_agent', 'user'), upload.array('photos', 5), updateDeclaration)
+    .delete(protect, authorize('admin', 'user'), deleteDeclaration);
 
-// Mettre à jour le statut d'une déclaration et assigner un agent (agents de commissariat et administrateurs)
-router.put('/:id/status', protect, authorize(ROLES.COMMISSARIAT_AGENT, ROLES.ADMIN), updateDeclarationStatus);
-
-// Supprimer une déclaration (administrateurs ou l'utilisateur lui-même si "En attente")
-router.delete('/:id', protect, authorize(ROLES.USER, ROLES.ADMIN), deleteDeclaration);
+// Mettre à jour le statut d'une déclaration
+router.put('/:id/status', protect, authorize('commissariat_agent', 'admin'), updateDeclarationStatus);
 
 export default router;

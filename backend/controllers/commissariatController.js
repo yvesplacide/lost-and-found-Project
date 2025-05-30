@@ -1,6 +1,9 @@
 // backend/controllers/commissariatController.js
 import asyncHandler from 'express-async-handler';
 import Commissariat from '../models/Commissariat.js';
+import User from '../models/User.js';
+import ROLES from '../config/roles.js';
+
 
 // @desc    Get all commissariats
 // @route   GET /api/commissariats
@@ -85,21 +88,29 @@ const deleteCommissariat = asyncHandler(async (req, res) => {
     const commissariat = await Commissariat.findById(req.params.id);
 
     if (commissariat) {
-        // Optionnel: Vérifier si des déclarations sont liées à ce commissariat avant de le supprimer
-        // const declarationsCount = await Declaration.countDocuments({ commissariat: req.params.id });
-        // if (declarationsCount > 0) {
-        //     res.status(400);
-        //     throw new Error('Cannot delete commissariat with existing declarations. Please reassign declarations first.');
-        // }
-        // Optionnel: Désassigner les agents liés à ce commissariat
-        await User.updateMany({ commissariat: req.params.id }, { $unset: { commissariat: 1 } });
+        try {
+            // Vérifier s'il y a des agents assignés à ce commissariat
+            const agentsCount = await User.countDocuments({ 
+                commissariat: req.params.id,
+                role: ROLES.COMMISSARIAT_AGENT 
+            });
 
+            if (agentsCount > 0) {
+                res.status(400);
+                throw new Error('Impossible de supprimer ce commissariat car il a des agents assignés. Veuillez d\'abord réassigner ou supprimer les agents.');
+            }
 
-        await commissariat.deleteOne();
-        res.status(200).json({ message: 'Commissariat removed' });
+            // Supprimer le commissariat
+            await commissariat.deleteOne();
+            res.status(200).json({ message: 'Commissariat supprimé avec succès' });
+        } catch (error) {
+            console.error('Erreur lors de la suppression du commissariat:', error);
+            res.status(500);
+            throw new Error('Erreur lors de la suppression du commissariat: ' + error.message);
+        }
     } else {
         res.status(404);
-        throw new Error('Commissariat not found');
+        throw new Error('Commissariat non trouvé');
     }
 });
 

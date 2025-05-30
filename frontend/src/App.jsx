@@ -11,6 +11,7 @@ import UserDashboard from './pages/UserDashboard';
 import CommissariatDashboard from './pages/CommissariatDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import NotFoundPage from './pages/NotFoundPage';
+import NewDeclarationPage from './pages/NewDeclarationPage';
 
 // Importez le composant pour la protection des routes
 import ProtectedRoute from './utils/ProtectedRoute';
@@ -28,6 +29,7 @@ function App() {
 
           {/* Routes Protégées pour les Utilisateurs */}
           <Route path="/user-dashboard" element={<ProtectedRoute allowedRoles={['user']}><UserDashboard /></ProtectedRoute>} />
+          <Route path="/declaration/new" element={<ProtectedRoute allowedRoles={['user']}><NewDeclarationPage /></ProtectedRoute>} />
           {/* Ajoutez d'autres routes spécifiques à l'utilisateur ici */}
 
           {/* Routes Protégées pour les Agents de Commissariat */}

@@ -1,0 +1,456 @@
+/* frontend/src/index.css */
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: #213547; /* Couleur de texte plus foncée pour la lisibilité */
+  background-color: #1b1f67; /* Un fond plus clair */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column; /* Pour la mise en page avec Header, Main, Footer */
+}
+
+#root {
+  flex: 1; /* Permet à l'application de prendre l'espace disponible */
+  display: flex;
+  flex-direction: column;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.header {
+  background-color: #333;
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header nav a {
+  color: white;
+  margin-left: 1.5rem;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.header nav a:hover {
+  text-decoration: underline;
+}
+
+.main-content {
+  flex: 1; /* Prend l'espace restant entre le header et le footer */
+  padding: 2rem;
+  max-width: 900px;
+  margin: 2rem auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 1rem 0;
+  margin-top: auto; /* Pousse le footer en bas */
+}
+
+/* Styles pour les formulaires d'authentification */
+.auth-page {
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.form-group {
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.form-group input {
+  width: calc(100% - 20px); /* Ajustement pour le padding */
+  padding: 0.8rem 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.btn {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.primary-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.primary-btn:hover {
+  background-color: #0056b3;
+}
+
+.text-btn {
+  background: none;
+  color: #007bff;
+  padding: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.text-btn:hover {
+  text-decoration: underline;
+}
+
+.auth-switch {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.header nav {
+    display: flex;
+    align-items: center; /* Aligner les éléments verticalement */
+}
+
+.header nav a, .header nav button {
+    margin-left: 1.5rem; /* Ajustement de la marge pour les liens et le bouton */
+}
+
+.header-logout-btn {
+    background: none; /* Rendre le bouton transparent */
+    border: 1px solid white; /* Bordure pour le distinguer */
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.header-logout-btn:hover {
+    background-color: white;
+    color: #333;
+}
+
+.user-info {
+    color: #a0a0a0; /* Couleur discrète pour les infos utilisateur */
+    margin-left: 1rem;
+    font-size: 0.9rem;
+}
+
+/* ... (votre CSS existant pour .header, .header nav, .header nav a, .header-logout-btn, .user-info) ... */
+
+/* Nouveaux styles ou ajustements */
+.header {
+  display: flex;
+  justify-content: space-between; /* Pour espacer le logo et la navigation */
+  align-items: center;
+  /* ... (autres styles existants) ... */
+}
+
+.logo a {
+    color: white;
+    font-size: 1.5rem; /* Taille plus grande pour le titre/logo */
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.logo a:hover {
+    text-decoration: none; /* Pas de soulignement sur le logo au survol */
+}
+
+/* Assurez-vous que la navigation est également alignée au centre si les éléments sont de hauteurs différentes */
+.header nav {
+    display: flex;
+    align-items: center;
+}
+
+/* ... (votre CSS existant) ... */
+
+/* Styles pour le tableau de bord utilisateur */
+.dashboard {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 2rem auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+.dashboard-sections {
+  display: grid;
+  grid-template-columns: 1fr; /* Une seule colonne par défaut */
+  gap: 2rem;
+}
+
+@media (min-width: 992px) { /* Pour les écrans plus larges, deux colonnes */
+  .dashboard-sections {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.form-section, .list-section {
+  padding: 1.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fcfcfc;
+}
+
+/* Styles pour le formulaire de déclaration */
+.declaration-form h3 {
+  margin-top: 0;
+  color: #555;
+}
+
+.declaration-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.declaration-form .form-group label {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.declaration-form input[type="text"],
+.declaration-form input[type="email"],
+.declaration-form input[type="password"],
+.declaration-form input[type="date"],
+.declaration-form input[type="datetime-local"],
+.declaration-form select,
+.declaration-form textarea {
+  width: calc(100% - 20px);
+  padding: 0.8rem 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box; /* Inclure padding et border dans la largeur */
+}
+
+.declaration-form textarea {
+  resize: vertical; /* Permettre le redimensionnement vertical */
+}
+
+.object-details, .person-details {
+  border: 1px dashed #ccc;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 6px;
+  background-color: #f0f8ff; /* Couleur légère pour distinguer */
+}
+
+.object-details h4, .person-details h4 {
+  margin-top: 0;
+  color: #007bff;
+}
+
+/* Styles pour la liste des déclarations */
+.declaration-cards {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.declaration-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  background-color: #fff;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+}
+
+.declaration-card h4 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.declaration-card p {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.declaration-card strong {
+  color: #007bff;
+}
+
+.details-section {
+  background-color: #f9f9f9;
+  border-left: 3px solid #007bff;
+  padding: 0.8rem;
+  margin-top: 1rem;
+  border-radius: 4px;
+}
+
+.details-section h5 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #0056b3;
+}
+
+.status-en-attente { color: orange; font-weight: bold; }
+.status-en-cours-de-traitement { color: blue; font-weight: bold; }
+.status-traitée { color: green; font-weight: bold; }
+.status-clôturée { color: #555; font-weight: bold; }
+
+
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.declaration-photo {
+    width: 100%;
+    height: 100px; /* Hauteur fixe pour l'aperçu */
+    object-fit: cover; /* Recadre l'image pour couvrir la zone */
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+  margin-top: 1rem;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
+}
+
+/* ... (vos styles existants pour .dashboard, .declaration-list-container, .declaration-cards, .declaration-card, etc.) ... */
+
+/* Styles spécifiques au tableau de bord commissariat */
+.commissariat-dashboard .declaration-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.commissariat-dashboard .declaration-card .btn-sm {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    align-self: flex-end; /* Aligne le bouton à droite */
+    margin-top: 1rem;
+}
+
+.commissariat-dashboard .status-select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+    background-color: white;
+}
+
+/* Styles pour la modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+    max-height: 90vh; /* Limite la hauteur de la modal */
+    overflow-y: auto; /* Ajoute un défilement si le contenu dépasse */
+    position: relative;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #333;
+}
+
+.modal-close-btn:hover {
+    color: #dc3545;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.modal-content p {
+    margin-bottom: 0.8rem;
+}
+
+.modal-content .details-section,
+.modal-content .photos-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #eee;
+}
+
+.modal-content .photos-section .photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* Plus petites images dans la modal */
+}

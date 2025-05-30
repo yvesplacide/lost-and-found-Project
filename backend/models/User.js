@@ -46,6 +46,13 @@ const UserSchema = mongoose.Schema({
         enum: Object.values(ROLES), // Utilise les valeurs définies dans config/roles.js
         default: ROLES.USER // Le rôle par défaut est 'user'
     },
+    commissariat: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Commissariat',
+        required: function() {
+            return this.role === ROLES.COMMISSARIAT_AGENT;
+        }
+    },
     createdAt: {
         type: Date,
         default: Date.now
