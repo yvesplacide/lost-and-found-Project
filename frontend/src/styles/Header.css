@@ -1,13 +1,17 @@
 .header {
-    background-color: white;
+    background-color: rgb(27, 19, 57);
     padding: 1rem 2rem;
     box-shadow: var(--shadow-sm);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 1000;
+    height: 70px;
+   
 }
 
 .logo a {
@@ -93,4 +97,10 @@ nav a:hover {
     .user-info {
         text-align: center;
     }
+}
+
+/* Ajuster le contenu principal pour éviter qu'il ne soit caché derrière le header */
+.main-content {
+    margin-top: 70px; /* Même hauteur que le header */
+    min-height: calc(100vh - 70px);
 } 

@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
+import '../../styles/Header.css';
 
 function Header() {
   const { user, logout, loading } = useAuth(); // Récupère l'utilisateur, logout, et loading du contexte
