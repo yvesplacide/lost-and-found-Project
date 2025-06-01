@@ -20,9 +20,9 @@ function AuthPage() {
             if (user.role === 'admin') {
                 navigate('/admin-dashboard');
             } else if (user.role === 'commissariat_agent') {
-                navigate('/commissariat-dashboard');
+                navigate('/');
             } else {
-                navigate('/user-dashboard');
+                navigate('/');
             }
             toast.info(`Vous êtes déjà connecté en tant que ${user.role}.`);
         }
@@ -41,9 +41,9 @@ function AuthPage() {
                     if (registeredUser.role === 'admin') {
                         navigate('/admin-dashboard');
                     } else if (registeredUser.role === 'commissariat_agent') {
-                        navigate('/commissariat-dashboard');
+                        navigate('/');
                     } else {
-                        navigate('/user-dashboard');
+                        navigate('/');
                     }
                 }
             } else {
@@ -56,9 +56,9 @@ function AuthPage() {
                     if (loggedInUser.role === 'admin') {
                         navigate('/admin-dashboard');
                     } else if (loggedInUser.role === 'commissariat_agent') {
-                        navigate('/commissariat-dashboard');
+                        navigate('/');
                     } else {
-                        navigate('/user-dashboard');
+                        navigate('/');
                     }
                 }
             }

@@ -1,18 +1,20 @@
 // frontend/src/pages/HomePage.js
 import React, { useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-toastify';
 import '../styles/HomePage.css';
 
 function HomePage() {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const featureRefs = useRef([]);
     const stepRefs = useRef([]);
 
     const handleDeclareLoss = () => {
         if (user) {
-            navigate('/declare-loss');
+            navigate('/declaration/new');
         } else {
             navigate('/auth');
         }
@@ -36,12 +38,19 @@ function HomePage() {
         return () => observer.disconnect();
     }, []);
 
+    useEffect(() => {
+        // Si l'utilisateur est connecté et qu'il y a un message de bienvenue
+        if (user && location.state?.message) {
+            toast.success(location.state.message);
+        }
+    }, [user, location.state, navigate]);
+
     const renderHeroContent = () => {
         if (user?.role === 'commissariat_agent') {
             return (
                 <div className="hero-content">
-                    <h1>Bienvenue sur votre espace agent</h1>
-                    <p>Gérez et suivez les déclarations de perte dans votre commissariat.</p>
+                    <h1>Bienvenue Agent {user.firstName}</h1>
+                    <p>Vous êtes connecté au commissariat de {user.commissariat?.name || 'votre commissariat'}. Gérez et suivez les déclarations de perte.</p>
                     <div className="hero-buttons">
                         <Link to="/commissariat-dashboard" className="hero-btn primary-btn">
                             Gérer les déclarations
@@ -56,8 +65,8 @@ function HomePage() {
 
         return (
             <div className="hero-content">
-                <h1>Déclaration de Perte</h1>
-                <p>Une plateforme simple et efficace pour déclarer vos pertes d'objets ou signaler des disparitions de personnes.</p>
+                <h1>Bienvenue {user?.firstName || 'sur la plateforme'}</h1>
+                <p>Vous êtes connecté à votre espace personnel. Vous pouvez déclarer une perte ou consulter vos déclarations existantes.</p>
                 <div className="hero-buttons">
                     <button 
                         onClick={handleDeclareLoss}

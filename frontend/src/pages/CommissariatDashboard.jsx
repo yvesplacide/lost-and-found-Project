@@ -217,6 +217,8 @@ function CommissariatDashboard() {
 
                                         <div className="form-group">
                                             <label htmlFor={`status-${declaration._id}`}>Changer le statut:</label>
+                                            <div className="status-change-container">
+                                                <span className="current-status">Statut actuel: <strong>{declaration.status}</strong></span>
                                             <select
                                                 id={`status-${declaration._id}`}
                                                 value={declaration.status}
@@ -227,6 +229,8 @@ function CommissariatDashboard() {
                                                     <option key={status} value={status}>{status}</option>
                                                 ))}
                                             </select>
+                                                <span className="status-change-hint">Sélectionnez un nouveau statut ci-dessus</span>
+                                            </div>
                                         </div>
                                         <button onClick={() => openDetailsModal(declaration)} className="btn primary-btn btn-sm">Voir les détails</button>
                                     </div>
