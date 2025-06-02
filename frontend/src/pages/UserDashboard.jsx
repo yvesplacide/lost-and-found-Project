@@ -50,6 +50,8 @@ function UserDashboard() {
         console.log('Déclaration complète:', declaration);
         console.log('Type de déclaration:', declaration.declarationType);
         console.log('Détails de l\'objet:', declaration.objectDetails);
+        console.log('Catégorie:', declaration.objectCategory);
+        console.log('Nom:', declaration.objectName);
         setSelectedDeclaration(declaration);
     };
 
@@ -130,7 +132,12 @@ function UserDashboard() {
                     ) : (
                         <div className="declaration-cards">
                             {declarations.map((declaration) => (
-                                <div key={declaration._id} className="declaration-card">
+                                <div 
+                                    key={declaration._id} 
+                                    className="declaration-card"
+                                    onClick={() => openDetailsModal(declaration)}
+                                    style={{ cursor: 'pointer' }}
+                                >
                                     <h4>Déclaration de {declaration.declarationType === 'objet' ? 'perte d\'objet' : 'disparition de personne'}</h4>
                                     <div className="declaration-info">
                                         <p><strong>N° de déclaration:</strong> {declaration._id}</p>
@@ -153,7 +160,10 @@ function UserDashboard() {
                                                     src={`http://localhost:5000/uploads/${photo}`} 
                                                     alt={`Photo ${index + 1}`} 
                                                     className="declaration-photo"
-                                                    onClick={() => openPhotoModal(photo)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openPhotoModal(photo);
+                                                    }}
                                                 />
                                             ))}
                                         </div>

@@ -29,6 +29,7 @@ function DeclarationForm({ onSubmitSuccess }) {
 
     const onSubmit = async (data) => {
         try {
+            console.log('Données du formulaire avant envoi:', data);
             // Ajuster la date pour correspondre au format attendu par le backend (ISO 8601)
             data.declarationDate = dayjs(data.declarationDate).toISOString();
 
@@ -42,6 +43,7 @@ function DeclarationForm({ onSubmitSuccess }) {
                     }
                 } else if (typeof data[key] === 'object' && data[key] !== null) {
                     // Pour les objets imbriqués comme objectDetails ou personDetails, stringifier
+                    console.log(`Données de ${key} avant stringification:`, data[key]);
                     formData.append(key, JSON.stringify(data[key]));
                 } else {
                     formData.append(key, data[key]);
@@ -50,9 +52,16 @@ function DeclarationForm({ onSubmitSuccess }) {
             
             // Corriger l'envoi des détails spécifiques comme objet JSON stringifié
             if (declarationType === 'objet' && data.objectDetails) {
+                console.log('Données de l\'objet avant envoi:', data.objectDetails);
                 formData.set('objectDetails', JSON.stringify(data.objectDetails));
             } else if (declarationType === 'personne' && data.personDetails) {
+                console.log('Données de la personne avant envoi:', data.personDetails);
                 formData.set('personDetails', JSON.stringify(data.personDetails));
+            }
+
+            console.log('FormData avant envoi:');
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
             }
 
             // Changer le Content-Type pour les requêtes FormData
@@ -62,6 +71,7 @@ function DeclarationForm({ onSubmitSuccess }) {
                 },
             });
 
+            console.log('Réponse du serveur:', response.data);
             toast.success('Déclaration soumise avec succès !');
             reset(); // Réinitialise le formulaire
             if (onSubmitSuccess) {

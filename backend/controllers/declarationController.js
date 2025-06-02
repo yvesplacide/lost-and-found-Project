@@ -41,14 +41,21 @@ export const createDeclaration = asyncHandler(async (req, res) => {
 
         // Ajouter les détails spécifiques selon le type de déclaration
         if (req.body.declarationType === 'objet') {
+            console.log('Données de l\'objet reçues:', req.body.objectDetails);
+            const objectDetails = typeof req.body.objectDetails === 'string' 
+                ? JSON.parse(req.body.objectDetails) 
+                : req.body.objectDetails;
+            
+            console.log('Données de l\'objet parsées:', objectDetails);
+            
             declarationData.objectDetails = {
-                objectCategory: req.body.objectDetails?.objectCategory,
-                objectName: req.body.objectDetails?.objectName,
-                objectBrand: req.body.objectDetails?.objectBrand,
-                color: req.body.objectDetails?.color,
-                serialNumber: req.body.objectDetails?.serialNumber,
-                estimatedValue: req.body.objectDetails?.estimatedValue,
-                identificationMarks: req.body.objectDetails?.identificationMarks
+                objectCategory: objectDetails.objectCategory,
+                objectName: objectDetails.objectName,
+                objectBrand: objectDetails.objectBrand,
+                color: objectDetails.color,
+                serialNumber: objectDetails.serialNumber,
+                estimatedValue: objectDetails.estimatedValue,
+                identificationMarks: objectDetails.identificationMarks
             };
         } else if (req.body.declarationType === 'personne') {
             declarationData.personDetails = {
