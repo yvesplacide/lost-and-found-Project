@@ -9,6 +9,7 @@ import '../styles/CommissariatDashboard.css'; // Import du CSS
 import { Link, useLocation } from 'react-router-dom';
 import { FaHome, FaList, FaChartBar, FaCog, FaBell } from 'react-icons/fa';
 import NotificationCounter from '../components/common/NotificationCounter';
+import ReceiptGenerator from '../components/declaration/ReceiptGenerator';
 dayjs.locale('fr');
 
 function CommissariatDashboard() {
@@ -276,6 +277,7 @@ function CommissariatDashboard() {
                                     <p>Catégorie: {selectedDeclaration.objectDetails.objectCategory}</p>
                                     {selectedDeclaration.objectDetails.objectBrand && <p>Marque: {selectedDeclaration.objectDetails.objectBrand}</p>}
                                     {selectedDeclaration.objectDetails.color && <p>Couleur: {selectedDeclaration.objectDetails.color}</p>}
+                                    {selectedDeclaration.objectDetails.serialNumber && <p>Numéro de série: {selectedDeclaration.objectDetails.serialNumber}</p>}
                                 </div>
                             )}
 
@@ -312,6 +314,40 @@ function CommissariatDashboard() {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Section du récépissé */}
+                            <div className="receipt-section">
+                                <h5>Récépissé Officiel</h5>
+                                {selectedDeclaration.receiptNumber ? (
+                                    <div className="receipt-info">
+                                        <p>Récépissé N° {selectedDeclaration.receiptNumber} établi le {dayjs(selectedDeclaration.receiptDate).format('DD/MM/YYYY')}</p>
+                                        <p className="receipt-status">Le déclarant peut télécharger ce récépissé depuis son espace personnel</p>
+                                    </div>
+                                ) : (
+                                    <div className="receipt-actions">
+                                        <p>Établir un récépissé officiel pour cette déclaration</p>
+                                        <ReceiptGenerator 
+                                            declaration={selectedDeclaration} 
+                                            onReceiptGenerated={(receiptNumber) => {
+                                                // Mettre à jour la déclaration dans la liste
+                                                setDeclarations(prevDeclarations =>
+                                                    prevDeclarations.map(decl =>
+                                                        decl._id === selectedDeclaration._id
+                                                            ? { ...decl, receiptNumber, receiptDate: new Date().toISOString() }
+                                                            : decl
+                                                    )
+                                                );
+                                                // Mettre à jour la déclaration sélectionnée
+                                                setSelectedDeclaration(prev => ({
+                                                    ...prev,
+                                                    receiptNumber,
+                                                    receiptDate: new Date().toISOString()
+                                                }));
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}

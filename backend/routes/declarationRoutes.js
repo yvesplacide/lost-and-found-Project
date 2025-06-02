@@ -36,4 +36,7 @@ router.route('/:id')
 // Mettre à jour le statut d'une déclaration
 router.put('/:id/status', protect, authorize('commissariat_agent', 'admin'), updateDeclarationStatus);
 
+// Mettre à jour le récépissé d'une déclaration
+router.put('/:id/receipt', protect, authorize('commissariat_agent', 'admin'), updateDeclaration);
+
 export default router;

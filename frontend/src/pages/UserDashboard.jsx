@@ -6,6 +6,8 @@ import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import DeclarationForm from '../components/declaration/DeclarationForm';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import '../styles/UserDashboard.css';
 
 dayjs.locale('fr');
@@ -17,6 +19,7 @@ function UserDashboard() {
     const [error, setError] = useState(null);
     const [selectedDeclaration, setSelectedDeclaration] = useState(null);
     const [showDeclarationForm, setShowDeclarationForm] = useState(false);
+    const [selectedPhoto, setSelectedPhoto] = useState(null);
 
     const fetchUserDeclarations = async () => {
         try {
@@ -44,11 +47,22 @@ function UserDashboard() {
     }, []);
 
     const openDetailsModal = (declaration) => {
+        console.log('Déclaration complète:', declaration);
+        console.log('Type de déclaration:', declaration.declarationType);
+        console.log('Détails de l\'objet:', declaration.objectDetails);
         setSelectedDeclaration(declaration);
     };
 
     const closeDetailsModal = () => {
         setSelectedDeclaration(null);
+    };
+
+    const openPhotoModal = (photo) => {
+        setSelectedPhoto(photo);
+    };
+
+    const closePhotoModal = () => {
+        setSelectedPhoto(null);
     };
 
     const handleNewDeclaration = () => {
@@ -139,7 +153,7 @@ function UserDashboard() {
                                                     src={`http://localhost:5000/uploads/${photo}`} 
                                                     alt={`Photo ${index + 1}`} 
                                                     className="declaration-photo"
-                                                    onClick={() => openDetailsModal(declaration)}
+                                                    onClick={() => openPhotoModal(photo)}
                                                 />
                                             ))}
                                         </div>
@@ -163,6 +177,63 @@ function UserDashboard() {
                             <p><strong>Lieu:</strong> {selectedDeclaration.location}</p>
                             <p><strong>Description:</strong> {selectedDeclaration.description}</p>
                             <p><strong>Commissariat:</strong> {selectedDeclaration.commissariat?.name || 'Non assigné'}</p>
+
+                            {/* Détails spécifiques pour les objets perdus */}
+                            {selectedDeclaration.declarationType === 'objet' && (
+                                <div className="object-details">
+                                    <h4>Détails de l'objet perdu</h4>
+                                    <p><strong>Catégorie:</strong> {selectedDeclaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
+                                    <p><strong>Nom:</strong> {selectedDeclaration.objectDetails?.objectName || 'Non spécifié'}</p>
+                                    {selectedDeclaration.objectDetails?.objectBrand && (
+                                        <p><strong>Marque:</strong> {selectedDeclaration.objectDetails.objectBrand}</p>
+                                    )}
+                                    {selectedDeclaration.objectDetails?.color && (
+                                        <p><strong>Couleur:</strong> {selectedDeclaration.objectDetails.color}</p>
+                                    )}
+                                    {selectedDeclaration.objectDetails?.serialNumber && (
+                                        <p><strong>Numéro de série:</strong> {selectedDeclaration.objectDetails.serialNumber}</p>
+                                    )}
+                                    {selectedDeclaration.objectDetails?.estimatedValue && (
+                                        <p><strong>Valeur estimée:</strong> {selectedDeclaration.objectDetails.estimatedValue} €</p>
+                                    )}
+                                    {selectedDeclaration.objectDetails?.identificationMarks && (
+                                        <p><strong>Signes particuliers:</strong> {selectedDeclaration.objectDetails.identificationMarks}</p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Détails spécifiques pour les personnes disparues */}
+                            {selectedDeclaration.declarationType === 'personne' && selectedDeclaration.personDetails && (
+                                <div className="person-details">
+                                    <h4>Détails de la personne disparue</h4>
+                                    <p><strong>Nom:</strong> {selectedDeclaration.personDetails.lastName}</p>
+                                    <p><strong>Prénom:</strong> {selectedDeclaration.personDetails.firstName}</p>
+                                    <p><strong>Date de naissance:</strong> {dayjs(selectedDeclaration.personDetails.dateOfBirth).format('DD MMMM YYYY')}</p>
+                                    <p><strong>Âge:</strong> {selectedDeclaration.personDetails.age} ans</p>
+                                    <p><strong>Genre:</strong> {selectedDeclaration.personDetails.gender}</p>
+                                    {selectedDeclaration.personDetails.height && (
+                                        <p><strong>Taille:</strong> {selectedDeclaration.personDetails.height} cm</p>
+                                    )}
+                                    {selectedDeclaration.personDetails.weight && (
+                                        <p><strong>Poids:</strong> {selectedDeclaration.personDetails.weight} kg</p>
+                                    )}
+                                    {selectedDeclaration.personDetails.clothing && (
+                                        <p><strong>Vêtements:</strong> {selectedDeclaration.personDetails.clothing}</p>
+                                    )}
+                                    {selectedDeclaration.personDetails.lastSeenLocation && (
+                                        <p><strong>Dernier lieu vu:</strong> {selectedDeclaration.personDetails.lastSeenLocation}</p>
+                                    )}
+                                    {selectedDeclaration.personDetails.lastSeenDate && (
+                                        <p><strong>Dernière date de vue:</strong> {dayjs(selectedDeclaration.personDetails.lastSeenDate).format('DD MMMM YYYY à HH:mm')}</p>
+                                    )}
+                                    {selectedDeclaration.personDetails.medicalConditions && (
+                                        <p><strong>Conditions médicales:</strong> {selectedDeclaration.personDetails.medicalConditions}</p>
+                                    )}
+                                    {selectedDeclaration.personDetails.contactInfo && (
+                                        <p><strong>Contact d'urgence:</strong> {selectedDeclaration.personDetails.contactInfo}</p>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {selectedDeclaration.photos && selectedDeclaration.photos.length > 0 && (
@@ -180,6 +251,131 @@ function UserDashboard() {
                                 </div>
                             </div>
                         )}
+
+                        {/* Section du récépissé */}
+                        {selectedDeclaration.receiptNumber && (
+                            <div className="receipt-section">
+                                <h4>Récépissé Officiel</h4>
+                                <div className="receipt-info">
+                                    <p>Récépissé N° {selectedDeclaration.receiptNumber}</p>
+                                    <p>Établi le {dayjs(selectedDeclaration.receiptDate).format('DD MMMM YYYY')}</p>
+                                    <button 
+                                        onClick={async () => {
+                                            try {
+                                                // Créer un élément temporaire pour le contenu du récépissé
+                                                const receiptElement = document.createElement('div');
+                                                receiptElement.style.width = '210mm';
+                                                receiptElement.style.padding = '20mm';
+                                                receiptElement.style.backgroundColor = 'white';
+                                                receiptElement.style.fontFamily = 'Arial, sans-serif';
+                                                receiptElement.style.position = 'absolute';
+                                                receiptElement.style.left = '-9999px';
+                                                receiptElement.innerHTML = `
+                                                    <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 20px;">
+                                                        <h1 style="font-size: 24px; margin-bottom: 10px;">Récépissé Officiel de Déclaration de Perte</h1>
+                                                        <p style="font-size: 16px;">N° ${selectedDeclaration.receiptNumber}</p>
+                                                        <p style="font-size: 16px;">Date d'émission: ${dayjs(selectedDeclaration.receiptDate).format('DD MMMM YYYY')}</p>
+                                                    </div>
+                                                    
+                                                    <div style="margin-bottom: 30px;">
+                                                        <h2 style="font-size: 20px; margin-bottom: 15px;">Informations de la Déclaration</h2>
+                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Type de déclaration:</strong> ${selectedDeclaration.declarationType === 'objet' ? 'Perte d\'objet' : 'Disparition de personne'}</p>
+                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Date de la déclaration:</strong> ${dayjs(selectedDeclaration.declarationDate).format('DD MMMM YYYY à HH:mm')}</p>
+                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Lieu de la perte:</strong> ${selectedDeclaration.location}</p>
+                                                        
+                                                        ${selectedDeclaration.declarationType === 'objet' ? `
+                                                            <h3 style="font-size: 18px; margin: 15px 0;">Détails de l'objet perdu</h3>
+                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Catégorie:</strong> ${selectedDeclaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
+                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Nom:</strong> ${selectedDeclaration.objectDetails?.objectName || 'Non spécifié'}</p>
+                                                            ${selectedDeclaration.objectDetails?.objectBrand ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Marque:</strong> ${selectedDeclaration.objectDetails.objectBrand}</p>` : ''}
+                                                            ${selectedDeclaration.objectDetails?.color ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Couleur:</strong> ${selectedDeclaration.objectDetails.color}</p>` : ''}
+                                                            ${selectedDeclaration.objectDetails?.serialNumber ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Numéro de série:</strong> ${selectedDeclaration.objectDetails.serialNumber}</p>` : ''}
+                                                            ${selectedDeclaration.objectDetails?.estimatedValue ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Valeur estimée:</strong> ${selectedDeclaration.objectDetails.estimatedValue} €</p>` : ''}
+                                                            ${selectedDeclaration.objectDetails?.identificationMarks ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Signes particuliers:</strong> ${selectedDeclaration.objectDetails.identificationMarks}</p>` : ''}
+                                                        ` : ''}
+                                                        
+                                                        ${selectedDeclaration.declarationType === 'personne' && selectedDeclaration.personDetails ? `
+                                                            <h3 style="font-size: 18px; margin: 15px 0;">Détails de la personne disparue</h3>
+                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Nom:</strong> ${selectedDeclaration.personDetails.lastName}</p>
+                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Prénom:</strong> ${selectedDeclaration.personDetails.firstName}</p>
+                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Date de naissance:</strong> ${dayjs(selectedDeclaration.personDetails.dateOfBirth).format('DD MMMM YYYY')}</p>
+                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Âge:</strong> ${selectedDeclaration.personDetails.age} ans</p>
+                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Genre:</strong> ${selectedDeclaration.personDetails.gender}</p>
+                                                            ${selectedDeclaration.personDetails.height ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Taille:</strong> ${selectedDeclaration.personDetails.height} cm</p>` : ''}
+                                                            ${selectedDeclaration.personDetails.weight ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Poids:</strong> ${selectedDeclaration.personDetails.weight} kg</p>` : ''}
+                                                            ${selectedDeclaration.personDetails.clothing ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Vêtements:</strong> ${selectedDeclaration.personDetails.clothing}</p>` : ''}
+                                                            ${selectedDeclaration.personDetails.lastSeenLocation ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Dernier lieu vu:</strong> ${selectedDeclaration.personDetails.lastSeenLocation}</p>` : ''}
+                                                            ${selectedDeclaration.personDetails.lastSeenDate ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Dernière date de vue:</strong> ${dayjs(selectedDeclaration.personDetails.lastSeenDate).format('DD MMMM YYYY à HH:mm')}</p>` : ''}
+                                                            ${selectedDeclaration.personDetails.medicalConditions ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Conditions médicales:</strong> ${selectedDeclaration.personDetails.medicalConditions}</p>` : ''}
+                                                            ${selectedDeclaration.personDetails.contactInfo ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Contact d'urgence:</strong> ${selectedDeclaration.personDetails.contactInfo}</p>` : ''}
+                                                        ` : ''}
+                                                        
+                                                        <h3 style="font-size: 18px; margin: 15px 0;">Description détaillée</h3>
+                                                        <p style="font-size: 14px; margin: 5px 0;">${selectedDeclaration.description}</p>
+                                                    </div>
+                                                    
+                                                    <div style="margin-top: 50px; border-top: 1px solid #000; padding-top: 20px;">
+                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Commissariat:</strong> ${selectedDeclaration.commissariat?.name || 'Non assigné'}</p>
+                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Adresse du commissariat:</strong> ${selectedDeclaration.commissariat?.address || 'Non disponible'}</p>
+                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Téléphone:</strong> ${selectedDeclaration.commissariat?.phone || 'Non disponible'}</p>
+                                                        
+                                                        <div style="margin-top: 50px;">
+                                                            <p style="font-size: 14px; margin: 5px 0;">Signature et cachet du commissariat</p>
+                                                            <div style="border-top: 1px solid #000; width: 200px; margin-top: 50px;"></div>
+                                                        </div>
+                                                    </div>
+                                                `;
+
+                                                // Ajouter l'élément au document
+                                                document.body.appendChild(receiptElement);
+
+                                                // Convertir en canvas puis en PDF
+                                                const canvas = await html2canvas(receiptElement, {
+                                                    scale: 2,
+                                                    useCORS: true,
+                                                    logging: false
+                                                });
+
+                                                const imgData = canvas.toDataURL('image/png');
+                                                const pdf = new jsPDF('p', 'mm', 'a4');
+                                                const pdfWidth = pdf.internal.pageSize.getWidth();
+                                                const pdfHeight = pdf.internal.pageSize.getHeight();
+                                                const imgWidth = canvas.width;
+                                                const imgHeight = canvas.height;
+                                                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                                                const imgX = (pdfWidth - imgWidth * ratio) / 2;
+                                                const imgY = 0;
+
+                                                pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+                                                pdf.save(`recepisse_officiel_${selectedDeclaration.receiptNumber}.pdf`);
+
+                                                // Nettoyer
+                                                document.body.removeChild(receiptElement);
+                                            } catch (error) {
+                                                console.error('Erreur lors de la génération du PDF:', error);
+                                                toast.error('Erreur lors de la génération du PDF');
+                                            }
+                                        }}
+                                        className="btn primary-btn"
+                                    >
+                                        Télécharger le récépissé
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {selectedPhoto && (
+                <div className="modal-overlay" onClick={closePhotoModal}>
+                    <div className="photo-modal-content" onClick={e => e.stopPropagation()}>
+                        <button className="modal-close-btn" onClick={closePhotoModal}>&times;</button>
+                        <img 
+                            src={`http://localhost:5000/uploads/${selectedPhoto}`} 
+                            alt="Photo agrandie" 
+                            className="enlarged-photo"
+                        />
                     </div>
                 </div>
             )}

@@ -308,4 +308,66 @@
     font-size: 0.8em;
     color: #666;
     font-style: italic;
+}
+
+/* Styles pour la section du récépissé */
+.receipt-section {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.receipt-section h5 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+.receipt-info {
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.receipt-info p {
+    margin: 5px 0;
+    color: #495057;
+}
+
+.receipt-status {
+    color: #28a745 !important;
+    font-style: italic;
+    margin-top: 10px !important;
+}
+
+.receipt-actions {
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.receipt-actions p {
+    margin-bottom: 15px;
+    color: #6c757d;
+}
+
+.receipt-generator {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.receipt-generator button {
+    min-width: 200px;
+}
+
+.receipt-generator .receipt-info {
+    font-size: 0.9em;
+    color: #28a745;
+    margin-top: 10px;
 } 

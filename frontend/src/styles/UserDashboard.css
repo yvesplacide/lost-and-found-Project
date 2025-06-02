@@ -489,6 +489,38 @@ body {
     font-weight: 600;
 }
 
+/* Styles pour la section du récépissé */
+.receipt-section {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.receipt-section h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+.receipt-info {
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.receipt-info p {
+    margin: 5px 0;
+    color: #495057;
+}
+
+.receipt-info button {
+    margin-top: 15px;
+    min-width: 200px;
+}
+
 /* Responsive design */
 @media (max-width: 1200px) {
     .dashboard.user-dashboard {
@@ -556,4 +588,95 @@ body {
     .stat-card .number {
         font-size: 2.5em;
     }
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.modal-footer .btn {
+    min-width: 150px;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.modal-footer .primary-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+}
+
+.modal-footer .primary-btn:hover {
+    background-color: #34495e;
+    transform: translateY(-2px);
+}
+
+.modal-footer .secondary-btn {
+    background-color: #95a5a6;
+    color: white;
+    border: none;
+}
+
+.modal-footer .secondary-btn:hover {
+    background-color: #7f8c8d;
+    transform: translateY(-2px);
+}
+
+.photo-modal-content {
+    position: relative;
+    background-color: transparent;
+    max-width: 90vw;
+    max-height: 90vh;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.enlarged-photo {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    cursor: pointer;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px;
+    z-index: 1001;
+}
+
+.modal-close-btn:hover {
+    color: #ff4444;
 } 

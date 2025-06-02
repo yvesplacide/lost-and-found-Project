@@ -29,11 +29,40 @@ export const createDeclaration = asyncHandler(async (req, res) => {
 
         // Préparer les données de la déclaration
         const declarationData = {
-            ...req.body,
             user: req.user._id,
+            declarationType: req.body.declarationType,
+            declarationDate: req.body.declarationDate,
+            location: req.body.location,
+            description: req.body.description,
+            commissariat: req.body.commissariat,
             status: 'En attente',
             createdAt: new Date()
         };
+
+        // Ajouter les détails spécifiques selon le type de déclaration
+        if (req.body.declarationType === 'objet') {
+            declarationData.objectDetails = {
+                objectCategory: req.body.objectDetails?.objectCategory,
+                objectName: req.body.objectDetails?.objectName,
+                objectBrand: req.body.objectDetails?.objectBrand,
+                color: req.body.objectDetails?.color,
+                serialNumber: req.body.objectDetails?.serialNumber,
+                estimatedValue: req.body.objectDetails?.estimatedValue,
+                identificationMarks: req.body.objectDetails?.identificationMarks
+            };
+        } else if (req.body.declarationType === 'personne') {
+            declarationData.personDetails = {
+                firstName: req.body.personDetails?.firstName,
+                lastName: req.body.personDetails?.lastName,
+                dateOfBirth: req.body.personDetails?.dateOfBirth,
+                gender: req.body.personDetails?.gender,
+                height: req.body.personDetails?.height,
+                weight: req.body.personDetails?.weight,
+                clothingDescription: req.body.personDetails?.clothingDescription,
+                lastSeenLocation: req.body.personDetails?.lastSeenLocation,
+                distinguishingMarks: req.body.personDetails?.distinguishingMarks
+            };
+        }
 
         // Gérer les photos si présentes
         if (req.files && req.files.length > 0) {

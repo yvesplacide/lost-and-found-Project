@@ -133,22 +133,66 @@ function DeclarationForm({ onSubmitSuccess }) {
                     <div className="object-details">
                         <h4>Détails de l'objet</h4>
                         <div className="form-group">
-                            <label htmlFor="objectDetails.objectName">Nom de l'objet</label>
+                            <label htmlFor="objectDetails.objectCategory">Catégorie</label>
+                            <select
+                                id="objectDetails.objectCategory"
+                                {...register('objectDetails.objectCategory', { required: 'La catégorie est requise' })}
+                                className="form-control"
+                            >
+                                <option value="">Sélectionner une catégorie</option>
+                                <optgroup label="Documents administratifs">
+                                    <option value="cni">Carte Nationale d'Identité (CNI)</option>
+                                    <option value="passeport">Passeport</option>
+                                    <option value="certificat_nationalite">Certificat de nationalité</option>
+                                    <option value="acte_naissance">Acte de naissance</option>
+                                    <option value="carte_electeur">Carte d'électeur</option>
+                                    <option value="permis_conduire">Permis de conduire</option>
+                                    <option value="carte_consulaire">Carte consulaire</option>
+                                    <option value="casier_judiciaire">Extrait de casier judiciaire</option>
+                                </optgroup>
+                                <optgroup label="Documents professionnels / scolaires">
+                                    <option value="carte_professionnelle">Carte professionnelle</option>
+                                    <option value="carte_etudiant">Carte d'étudiant ou scolaire</option>
+                                    <option value="diplomes">Diplômes ou relevés de notes</option>
+                                    <option value="ordre_mission">Ordres de mission</option>
+                                </optgroup>
+                                <optgroup label="Documents bancaires / financiers">
+                                    <option value="carte_bancaire">Carte bancaire</option>
+                                    <option value="carnet_cheques">Carnet de chèques</option>
+                                    <option value="bordereaux">Bordereaux de dépôt ou de retrait</option>
+                                    <option value="recus_transfert">Reçus de transfert d'argent</option>
+                                </optgroup>
+                                <optgroup label="Objets personnels">
+                                    <option value="telephone">Téléphone portable</option>
+                                    <option value="sac">Sac ou sac à main</option>
+                                    <option value="cles">Clés (de maison, de voiture, etc.)</option>
+                                    <option value="ordinateur">Ordinateur portable</option>
+                                    <option value="montre_bijoux">Montre ou bijoux de valeur</option>
+                                </optgroup>
+                                <optgroup label="Véhicules">
+                                    <option value="carte_grise">Carte grise (certificat d'immatriculation)</option>
+                                    <option value="assurance_vehicule">Assurance véhicule</option>
+                                    <option value="plaque_immatriculation">Plaque d'immatriculation</option>
+                                </optgroup>
+                                <optgroup label="Autres objets ou documents">
+                                    <option value="badge_acces">Badge d'accès (entreprise, résidence)</option>
+                                    <option value="carnet_sante">Carnet de santé</option>
+                                    <option value="certificat_travail">Certificat de travail</option>
+                                    <option value="contrat">Contrat de bail ou d'assurance</option>
+                                </optgroup>
+                            </select>
+                            {errors.objectDetails?.objectCategory && <span className="error-message">{errors.objectDetails.objectCategory.message}</span>}
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="objectDetails.objectName">Nom spécifique de l'objet</label>
                             <input
                                 type="text"
                                 id="objectDetails.objectName"
                                 {...register('objectDetails.objectName', { required: 'Le nom de l\'objet est requis' })}
+                                className="form-control"
+                                placeholder="Ex: iPhone 13, Sac à dos Nike, etc."
                             />
                             {errors.objectDetails?.objectName && <span className="error-message">{errors.objectDetails.objectName.message}</span>}
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="objectDetails.objectCategory">Catégorie</label>
-                            <input
-                                type="text"
-                                id="objectDetails.objectCategory"
-                                {...register('objectDetails.objectCategory', { required: 'La catégorie est requise' })}
-                            />
-                            {errors.objectDetails?.objectCategory && <span className="error-message">{errors.objectDetails.objectCategory.message}</span>}
                         </div>
                         <div className="form-group">
                             <label htmlFor="objectDetails.objectBrand">Marque (optionnel)</label>
@@ -156,6 +200,8 @@ function DeclarationForm({ onSubmitSuccess }) {
                                 type="text"
                                 id="objectDetails.objectBrand"
                                 {...register('objectDetails.objectBrand')}
+                                className="form-control"
+                                placeholder="Ex: Apple, Samsung, Nike, etc."
                             />
                         </div>
                         <div className="form-group">
@@ -164,6 +210,18 @@ function DeclarationForm({ onSubmitSuccess }) {
                                 type="text"
                                 id="objectDetails.color"
                                 {...register('objectDetails.color')}
+                                className="form-control"
+                                placeholder="Ex: Noir, Rouge, etc."
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="objectDetails.serialNumber">Numéro de série ou référence (optionnel)</label>
+                            <input
+                                type="text"
+                                id="objectDetails.serialNumber"
+                                {...register('objectDetails.serialNumber')}
+                                className="form-control"
+                                placeholder="Ex: Numéro de série, référence du document, etc."
                             />
                         </div>
                     </div>
