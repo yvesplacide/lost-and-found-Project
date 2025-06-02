@@ -224,6 +224,7 @@ function CommissariatDashboard() {
                                     className="declaration-card"
                                     onClick={() => openDetailsModal(declaration)}
                                     style={{ cursor: 'pointer' }}
+                                    title="Cliquez ici pour voir les détails de la déclaration"
                                 >
                                     <div className="declaration-info">
                                         <h4>Déclaration de {declaration.declarationType === 'objet' ? 'perte d\'objet' : 'disparition de personne'}</h4>
@@ -236,31 +237,10 @@ function CommissariatDashboard() {
                                                 <p><strong>Nom:</strong> {declaration.objectDetails?.objectName || 'Non spécifié'}</p>
                                             </>
                                         )}
-
-                                        <div className="form-group">
-                                            <label htmlFor={`status-${declaration._id}`}>Changer le statut:</label>
-                                            <div className="status-change-container">
-                                                <span className="current-status">Statut actuel: <strong>{declaration.status}</strong></span>
-                                                <select
-                                                    id={`status-${declaration._id}`}
-                                                    value={declaration.status}
-                                                    onChange={(e) => {
-                                                        e.stopPropagation(); // Empêche l'ouverture de la modal
-                                                        handleStatusChange(declaration._id, e.target.value);
-                                                    }}
-                                                    className="status-select"
-                                                >
-                                                    {statusOptions.map(status => (
-                                                        <option key={status} value={status}>{status}</option>
-                                                    ))}
-                                                </select>
-                                                <span className="status-change-hint">Sélectionnez un nouveau statut ci-dessus</span>
-                                            </div>
-                                        </div>
                                     </div>
 
                                     {declaration.photos && declaration.photos.length > 0 ? (
-                                        <div className="declaration-photos">
+                                        <div className="declaration-photos" onClick={e => e.stopPropagation()}>
                                             {declaration.photos.map((photo, index) => (
                                                 <img 
                                                     key={index} 
@@ -268,6 +248,7 @@ function CommissariatDashboard() {
                                                     alt={`Photo ${index + 1}`} 
                                                     className="declaration-photo-thumbnail"
                                                     onClick={(e) => openPhotoModal(`http://localhost:5000/uploads/${photo}`, e)}
+                                                    title="Cliquez pour voir la photo en grand"
                                                 />
                                             ))}
                                         </div>
@@ -276,6 +257,24 @@ function CommissariatDashboard() {
                                             <p>Aucune photo disponible</p>
                                         </div>
                                     )}
+
+                                    <div className="form-group" onClick={e => e.stopPropagation()}>
+                                        <label htmlFor={`status-${declaration._id}`}>Changer le statut:</label>
+                                        <div className="status-change-container" title="">
+                                            <span className="current-status">Statut actuel: <strong>{declaration.status}</strong></span>
+                                            <select
+                                                id={`status-${declaration._id}`}
+                                                value={declaration.status}
+                                                onChange={(e) => handleStatusChange(declaration._id, e.target.value)}
+                                                className="status-select"
+                                            >
+                                                {statusOptions.map(status => (
+                                                    <option key={status} value={status}>{status}</option>
+                                                ))}
+                                            </select>
+                                            <span className="status-change-hint">Sélectionnez un nouveau statut ci-dessus</span>
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                         </div>
