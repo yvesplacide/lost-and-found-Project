@@ -8,6 +8,7 @@ import 'dayjs/locale/fr'; // Importer la locale française pour dayjs
 import '../styles/CommissariatDashboard.css'; // Import du CSS
 import { Link, useLocation } from 'react-router-dom';
 import { FaHome, FaList, FaChartBar, FaCog, FaBell } from 'react-icons/fa';
+import NotificationCounter from '../components/common/NotificationCounter';
 dayjs.locale('fr');
 
 function CommissariatDashboard() {
@@ -158,8 +159,9 @@ function CommissariatDashboard() {
                             </Link>
                         </li>
                         <li>
-                            <Link to="/commissariat-dashboard/notifications" className={location.pathname === '/commissariat-dashboard/notifications' ? 'active' : ''}>
+                            <Link to="/commissariat-dashboard/notifications" className={location.pathname === '/commissariat-dashboard/notifications' ? 'active' : ''} style={{ position: 'relative' }}>
                                 <FaBell /> Notifications
+                                <NotificationCounter />
                             </Link>
                         </li>
                         <li>

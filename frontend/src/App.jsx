@@ -12,6 +12,7 @@ import CommissariatDashboard from './pages/CommissariatDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import NotFoundPage from './pages/NotFoundPage';
 import NewDeclarationPage from './pages/NewDeclarationPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 // Importez le composant pour la protection des routes
 import ProtectedRoute from './utils/ProtectedRoute';
@@ -34,6 +35,7 @@ function App() {
 
           {/* Routes Protégées pour les Agents de Commissariat */}
           <Route path="/commissariat-dashboard" element={<ProtectedRoute allowedRoles={['commissariat_agent']}><CommissariatDashboard /></ProtectedRoute>} />
+          <Route path="/commissariat-dashboard/notifications" element={<ProtectedRoute allowedRoles={['commissariat_agent']}><NotificationsPage /></ProtectedRoute>} />
           {/* Ajoutez d'autres routes spécifiques au commissariat ici */}
 
           {/* Routes Protégées pour les Administrateurs */}
