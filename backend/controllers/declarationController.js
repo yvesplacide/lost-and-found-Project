@@ -91,7 +91,7 @@ export const createDeclaration = asyncHandler(async (req, res) => {
 
         // Populer les références pour la réponse
         const populatedDeclaration = await Declaration.findById(declaration._id)
-            .populate('user', 'firstName lastName email')
+            .populate('user', 'firstName lastName email phone address profession dateOfBirth birthPlace')
             .populate('commissariat', 'name city');
 
         console.log('Déclaration peuplée avec succès');
@@ -113,8 +113,12 @@ export const createDeclaration = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 export const getDeclarations = asyncHandler(async (req, res) => {
     const declarations = await Declaration.find({})
-        .populate('user', 'firstName lastName email')
-        .populate('commissariat', 'name city');
+        .populate({
+            path: 'user',
+            select: 'firstName lastName email phone address profession dateOfBirth birthPlace'
+        })
+        .populate('commissariat', 'name city')
+        .populate('agentAssigned', 'firstName lastName');
     res.json(declarations);
 });
 
@@ -123,7 +127,12 @@ export const getDeclarations = asyncHandler(async (req, res) => {
 // @access  Private/User
 export const getMyDeclarations = asyncHandler(async (req, res) => {
     const declarations = await Declaration.find({ user: req.user._id })
-        .populate('commissariat', 'name city');
+        .populate({
+            path: 'user',
+            select: 'firstName lastName email phone address profession dateOfBirth birthPlace'
+        })
+        .populate('commissariat', 'name city')
+        .populate('agentAssigned', 'firstName lastName');
     res.json(declarations);
 });
 
@@ -132,8 +141,12 @@ export const getMyDeclarations = asyncHandler(async (req, res) => {
 // @access  Private
 export const getDeclarationById = asyncHandler(async (req, res) => {
     const declaration = await Declaration.findById(req.params.id)
-        .populate('user', 'firstName lastName email')
-        .populate('commissariat', 'name city');
+        .populate({
+            path: 'user',
+            select: 'firstName lastName email phone address profession dateOfBirth birthPlace'
+        })
+        .populate('commissariat', 'name city')
+        .populate('agentAssigned', 'firstName lastName');
 
     if (!declaration) {
         res.status(404);
@@ -170,13 +183,26 @@ export const updateDeclaration = asyncHandler(async (req, res) => {
         throw new Error('Non autorisé à modifier cette déclaration');
     }
 
+    // Mettre à jour la déclaration
     const updatedDeclaration = await Declaration.findByIdAndUpdate(
         req.params.id,
         req.body,
-        { new: true, runValidators: true }
+        { 
+            new: true, 
+            runValidators: true 
+        }
     );
 
-    res.json(updatedDeclaration);
+    // Populer les données de l'utilisateur et autres références
+    const populatedDeclaration = await Declaration.findById(updatedDeclaration._id)
+        .populate({
+            path: 'user',
+            select: 'firstName lastName email phone address profession dateOfBirth birthPlace'
+        })
+        .populate('commissariat', 'name city')
+        .populate('agentAssigned', 'firstName lastName');
+
+    res.json(populatedDeclaration);
 });
 
 // @desc    Supprimer une déclaration
@@ -201,43 +227,30 @@ export const deleteDeclaration = asyncHandler(async (req, res) => {
     res.json({ message: 'Déclaration supprimée' });
 });
 
-// @desc    Obtenir les déclarations par commissariat
+// @desc    Obtenir les déclarations d'un commissariat spécifique
 // @route   GET /api/declarations/commissariat/:commissariatId
-// @access  Private/Commissariat_Agent/Admin
+// @access  Private/Commissariat
 export const getDeclarationsByCommissariat = asyncHandler(async (req, res) => {
-    try {
-        let commissariatId;
+    const { commissariatId } = req.params;
 
-        // Si l'utilisateur est un agent de commissariat, utiliser son commissariat
-        if (req.user.role === 'commissariat_agent') {
-            commissariatId = req.user.commissariat;
-        } else if (req.user.role === 'admin') {
-            // Si l'utilisateur est admin, utiliser l'ID fourni dans les paramètres
-            commissariatId = req.params.commissariatId;
-        } else {
-            res.status(403);
-            throw new Error('Non autorisé à accéder aux déclarations');
-        }
-
-        // Vérifier si le commissariat existe
-        const commissariat = await Commissariat.findById(commissariatId);
-        if (!commissariat) {
-            res.status(404);
-            throw new Error('Commissariat non trouvé');
-        }
-
-        // Récupérer les déclarations avec les informations associées
-        const declarations = await Declaration.find({ commissariat: commissariatId })
-            .populate('user', 'firstName lastName email')
-            .populate('commissariat', 'name city')
-            .sort({ createdAt: -1 }); // Trier par date de création décroissante
-
-        res.json(declarations);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des déclarations:', error);
-        res.status(error.statusCode || 500);
-        throw new Error(error.message || 'Erreur lors de la récupération des déclarations');
+    // Vérifier si le commissariat existe
+    const commissariat = await Commissariat.findById(commissariatId);
+    if (!commissariat) {
+        res.status(404);
+        throw new Error('Commissariat non trouvé');
     }
+
+    // Récupérer les déclarations avec les données utilisateur populées
+    const declarations = await Declaration.find({ commissariat: commissariatId })
+        .populate({
+            path: 'user',
+            select: 'firstName lastName email phone address profession dateOfBirth birthPlace'
+        })
+        .populate('commissariat', 'name city')
+        .populate('agentAssigned', 'firstName lastName')
+        .sort({ createdAt: -1 }); // Trier par date de création décroissante
+
+    res.json(declarations);
 });
 
 // @desc    Mettre à jour le statut d'une déclaration

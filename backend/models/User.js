@@ -32,13 +32,29 @@ const UserSchema = mongoose.Schema({
     },
     phone: {
         type: String,
+        required: [true, 'Please add a phone number'],
         match: [
             /^((\+|00)[1-9]{1,4})?[ -]?([0-9]{2,4}[ -]?){3,5}[0-9]{2,4}$/,
             'Please add a valid phone number'
         ]
     },
+    profession: {
+        type: String,
+        required: [true, 'Please add a profession'],
+        trim: true
+    },
     address: {
         type: String,
+        required: [true, 'Please add an address'],
+        trim: true
+    },
+    dateOfBirth: {
+        type: Date,
+        required: [true, 'Please add a date of birth']
+    },
+    birthPlace: {
+        type: String,
+        required: [true, 'Please add a place of birth'],
         trim: true
     },
     role: {

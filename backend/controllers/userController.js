@@ -31,7 +31,7 @@ const getUserById = asyncHandler(async (req, res) => {
 // @route   POST /api/users
 // @access  Private (Admin)
 const createUser = asyncHandler(async (req, res) => {
-    const { firstName, lastName, email, password, phone, address, role, commissariatId } = req.body;
+    const { firstName, lastName, email, password, phone, address, profession, role, commissariatId } = req.body;
 
     // Vérifier si l'utilisateur existe déjà
     const userExists = await User.findOne({ email });
@@ -67,6 +67,7 @@ const createUser = asyncHandler(async (req, res) => {
         password,
         phone,
         address,
+        profession,
         role: role || ROLES.USER,
         commissariat: role === ROLES.COMMISSARIAT_AGENT ? commissariatId : undefined
     });
@@ -79,6 +80,7 @@ const createUser = asyncHandler(async (req, res) => {
             email: user.email,
             phone: user.phone,
             address: user.address,
+            profession: user.profession,
             role: user.role,
             commissariat: user.commissariat
         });
@@ -92,7 +94,7 @@ const createUser = asyncHandler(async (req, res) => {
 // @route   PUT /api/users/:id
 // @access  Private (Admin)
 const updateUser = asyncHandler(async (req, res) => {
-    const { firstName, lastName, email, phone, address, role, commissariatId } = req.body;
+    const { firstName, lastName, email, phone, address, profession, role, commissariatId } = req.body;
 
     const user = await User.findById(req.params.id);
 
@@ -101,6 +103,7 @@ const updateUser = asyncHandler(async (req, res) => {
         user.lastName = lastName || user.lastName;
         user.phone = phone || user.phone;
         user.address = address || user.address;
+        user.profession = profession || user.profession;
 
         // Vérifier l'email
         if (email && email !== user.email) {
@@ -146,6 +149,7 @@ const updateUser = asyncHandler(async (req, res) => {
             email: updatedUser.email,
             phone: updatedUser.phone,
             address: updatedUser.address,
+            profession: updatedUser.profession,
             role: updatedUser.role,
             commissariat: updatedUser.commissariat
         });

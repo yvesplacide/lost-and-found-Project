@@ -521,6 +521,62 @@ body {
     min-width: 200px;
 }
 
+/* Styles pour la prévisualisation du récépissé */
+.receipt-preview {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.receipt-preview h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.receipt-preview h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.receipt-preview h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.receipt-preview h4 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.receipt-preview p {
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+.receipt-preview strong {
+    font-weight: 600;
+}
+
+.receipt-info {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.receipt-info p {
+    font-size: 16px;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
 /* Responsive design */
 @media (max-width: 1200px) {
     .dashboard.user-dashboard {

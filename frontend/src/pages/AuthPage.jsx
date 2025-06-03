@@ -32,8 +32,14 @@ function AuthPage() {
     const onSubmit = async (data) => {
         try {
             if (isRegistering) {
+                // Formater la date de naissance en format ISO
+                const formattedData = {
+                    ...data,
+                    dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : null
+                };
+                
                 // Logique d'inscription
-                const registeredUser = await authRegister(data);
+                const registeredUser = await authRegister(formattedData);
                 if (registeredUser) {
                     toast.success(`Bienvenue, ${registeredUser.firstName} !`);
                     reset(); // Réinitialise le formulaire après succès
@@ -100,23 +106,59 @@ function AuthPage() {
                                 {errors.lastName && <span className="error-message">{errors.lastName.message}</span>}
                             </div>
                             <div className="form-group">
-                                <label htmlFor="phone">Téléphone (optionnel)</label>
+                                <label htmlFor="dateOfBirth">Date de naissance</label>
+                                <input
+                                    type="date"
+                                    id="dateOfBirth"
+                                    {...register('dateOfBirth', { required: 'La date de naissance est requise' })}
+                                />
+                                {errors.dateOfBirth && <span className="error-message">{errors.dateOfBirth.message}</span>}
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="birthPlace">Lieu de naissance</label>
+                                <input
+                                    type="text"
+                                    id="birthPlace"
+                                    placeholder="Votre lieu de naissance"
+                                    {...register('birthPlace', { required: 'Le lieu de naissance est requis' })}
+                                />
+                                {errors.birthPlace && <span className="error-message">{errors.birthPlace.message}</span>}
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="phone">Téléphone</label>
                                 <input
                                     type="text"
                                     id="phone"
                                     placeholder="Votre numéro de téléphone"
-                                    {...register('phone', { pattern: { value: /^[0-9]{10}$/, message: 'Numéro de téléphone invalide (10 chiffres)' } })}
+                                    {...register('phone', { 
+                                        required: 'Le numéro de téléphone est requis',
+                                        pattern: { 
+                                            value: /^[0-9]{10}$/, 
+                                            message: 'Numéro de téléphone invalide (10 chiffres)' 
+                                        } 
+                                    })}
                                 />
                                 {errors.phone && <span className="error-message">{errors.phone.message}</span>}
                             </div>
                             <div className="form-group">
-                                <label htmlFor="address">Adresse (optionnel)</label>
+                                <label htmlFor="address">Adresse</label>
                                 <input
                                     type="text"
                                     id="address"
                                     placeholder="Votre adresse"
-                                    {...register('address')}
+                                    {...register('address', { required: 'L\'adresse est requise' })}
                                 />
+                                {errors.address && <span className="error-message">{errors.address.message}</span>}
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="profession">Profession</label>
+                                <input
+                                    type="text"
+                                    id="profession"
+                                    placeholder="Votre profession"
+                                    {...register('profession', { required: 'La profession est requise' })}
+                                />
+                                {errors.profession && <span className="error-message">{errors.profession.message}</span>}
                             </div>
                         </>
                     )}

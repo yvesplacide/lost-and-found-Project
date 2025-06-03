@@ -7,7 +7,17 @@ import ROLES from '../config/roles.js'; // Importe les rôles
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-    const { firstName, lastName, email, password, phone, address } = req.body;
+    const { 
+        firstName, 
+        lastName, 
+        email, 
+        password, 
+        phone, 
+        address, 
+        profession,
+        dateOfBirth,
+        birthPlace 
+    } = req.body;
 
     // Vérifier si l'utilisateur existe déjà
     const userExists = await User.findOne({ email });
@@ -25,6 +35,9 @@ const registerUser = asyncHandler(async (req, res) => {
         password, // Le mot de passe sera haché par le middleware pre('save') du modèle User
         phone,
         address,
+        profession,
+        dateOfBirth,
+        birthPlace,
         role: ROLES.USER // S'assurer que le rôle est 'user' pour les inscriptions publiques
     });
 
@@ -36,6 +49,9 @@ const registerUser = asyncHandler(async (req, res) => {
             email: user.email,
             phone: user.phone,
             address: user.address,
+            profession: user.profession,
+            dateOfBirth: user.dateOfBirth,
+            birthPlace: user.birthPlace,
             role: user.role,
             token: user.getSignedJwtToken(), // Générer et envoyer le token JWT
         });
@@ -75,6 +91,7 @@ const loginUser = asyncHandler(async (req, res) => {
         email: user.email,
         phone: user.phone,
         address: user.address,
+        profession: user.profession,
         role: user.role,
         token: user.getSignedJwtToken(), // Générer et envoyer le token JWT
     });
@@ -97,6 +114,7 @@ const getMe = asyncHandler(async (req, res) => {
             email: user.email,
             phone: user.phone,
             address: user.address,
+            profession: user.profession,
             role: user.role,
             commissariat: user.commissariat
         });
