@@ -55,6 +55,7 @@ const generateReceiptContent = (declaration, receiptNumber) => {
             ${declaration.declarationType === 'objet' ? `
                 <p style="font-size: 14px; margin: 5px 0;"><strong>Nature du document/objet perdu :</strong> ${declaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
                 ${declaration.objectDetails?.serialNumber ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Numéro du document :</strong> ${declaration.objectDetails.serialNumber}</p>` : ''}
+                ${declaration.objectDetails?.objectBrand ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Marque :</strong> ${declaration.objectDetails.objectBrand}</p>` : ''}
                 <p style="font-size: 14px; margin: 5px 0;"><strong>Date approximative de la perte :</strong> ${dayjs(declaration.declarationDate).format('DD MMMM YYYY')}</p>
                 <p style="font-size: 14px; margin: 5px 0;"><strong>Lieu présumé de la perte :</strong> ${declaration.location}</p>
             ` : ''}

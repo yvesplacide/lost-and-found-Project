@@ -235,6 +235,7 @@ function CommissariatDashboard() {
                                             <>
                                                 <p><strong>Catégorie:</strong> {declaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
                                                 <p><strong>Nom:</strong> {declaration.objectDetails?.objectName || 'Non spécifié'}</p>
+                                                <p><strong>Marque:</strong> {declaration.objectDetails?.objectBrand || 'Non spécifiée'}</p>
                                             </>
                                         )}
                                     </div>
@@ -295,6 +296,7 @@ function CommissariatDashboard() {
                                     <>
                                         <p><strong>Catégorie:</strong> {selectedDeclaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
                                         <p><strong>Nom:</strong> {selectedDeclaration.objectDetails?.objectName || 'Non spécifié'}</p>
+                                        <p><strong>Marque:</strong> {selectedDeclaration.objectDetails?.objectBrand || 'Non spécifiée'}</p>
                                     </>
                                 )}
                                 <p><strong>Statut:</strong> {selectedDeclaration.status}</p>

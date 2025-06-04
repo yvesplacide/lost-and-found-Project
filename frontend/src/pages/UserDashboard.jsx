@@ -281,57 +281,63 @@ function UserDashboard() {
                                                 receiptElement.style.position = 'absolute';
                                                 receiptElement.style.left = '-9999px';
                                                 receiptElement.innerHTML = `
+                                                    <div style="text-align: center; margin-bottom: 30px;">
+                                                        <h1 style="font-size: 24px; margin-bottom: 10px;">RÉPUBLIQUE DE CÔTE D'IVOIRE</h1>
+                                                        <h2 style="font-size: 20px; margin-bottom: 10px;">Union – Discipline – Travail</h2>
+                                                        <h3 style="font-size: 18px; margin-bottom: 10px;">MINISTÈRE DE L'INTÉRIEUR ET DE LA SÉCURITÉ</h3>
+                                                        <h4 style="font-size: 16px; margin-bottom: 10px;">Direction Générale de la Police Nationale</h4>
+                                                        <h4 style="font-size: 16px; margin-bottom: 10px;">Commissariat de Police de ${selectedDeclaration.commissariat?.name || 'Non assigné'}</h4>
+                                                    </div>
+
                                                     <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 20px;">
-                                                        <h1 style="font-size: 24px; margin-bottom: 10px;">Récépissé Officiel de Déclaration de Perte</h1>
-                                                        <p style="font-size: 16px;">N° ${selectedDeclaration.receiptNumber}</p>
-                                                        <p style="font-size: 16px;">Date d'émission: ${dayjs(selectedDeclaration.receiptDate).format('DD MMMM YYYY')}</p>
+                                                        <h1 style="font-size: 24px; margin-bottom: 10px;">RÉCÉPISSÉ DE DÉCLARATION DE PERTE</h1>
+                                                        <p style="font-size: 16px;">N° : ${selectedDeclaration.receiptNumber}</p>
+                                                        <p style="font-size: 16px;">Date : ${dayjs(selectedDeclaration.receiptDate).format('DD MMMM YYYY')}</p>
                                                     </div>
                                                     
                                                     <div style="margin-bottom: 30px;">
-                                                        <h2 style="font-size: 20px; margin-bottom: 15px;">Informations de la Déclaration</h2>
-                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Type de déclaration:</strong> ${selectedDeclaration.declarationType === 'objet' ? 'Perte d\'objet' : 'Disparition de personne'}</p>
-                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Date de la déclaration:</strong> ${dayjs(selectedDeclaration.declarationDate).format('DD MMMM YYYY à HH:mm')}</p>
-                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Lieu de la perte:</strong> ${selectedDeclaration.location}</p>
+                                                        <h2 style="font-size: 20px; margin-bottom: 15px;">IDENTITÉ DU DÉCLARANT</h2>
+                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Nom et prénoms :</strong> ${selectedDeclaration.user?.lastName || ''} ${selectedDeclaration.user?.firstName || ''}</p>
+                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Date de naissance :</strong> ${selectedDeclaration.user?.dateOfBirth ? dayjs(selectedDeclaration.user.dateOfBirth).format('DD/MM/YYYY') : 'Non spécifiée'}</p>
+                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Lieu de naissance :</strong> ${selectedDeclaration.user?.birthPlace || 'Non spécifié'}</p>
+                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Profession :</strong> ${selectedDeclaration.user?.profession || 'Non spécifiée'}</p>
+                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Adresse :</strong> ${selectedDeclaration.user?.address || 'Non spécifiée'}</p>
+                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Contact :</strong> ${selectedDeclaration.user?.phone || 'Non spécifié'}</p>
+                                                    </div>
+
+                                                    <div style="margin-bottom: 30px;">
+                                                        <h2 style="font-size: 20px; margin-bottom: 15px;">OBJET DE LA DÉCLARATION</h2>
+                                                        <p style="font-size: 14px; margin: 5px 0;">Le susnommé a déclaré en ce jour la perte de l'objet suivant :</p>
                                                         
                                                         ${selectedDeclaration.declarationType === 'objet' ? `
-                                                            <h3 style="font-size: 18px; margin: 15px 0;">Détails de l'objet perdu</h3>
-                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Catégorie:</strong> ${selectedDeclaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
-                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Nom:</strong> ${selectedDeclaration.objectDetails?.objectName || 'Non spécifié'}</p>
-                                                            ${selectedDeclaration.objectDetails?.objectBrand ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Marque:</strong> ${selectedDeclaration.objectDetails.objectBrand}</p>` : ''}
-                                                            ${selectedDeclaration.objectDetails?.color ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Couleur:</strong> ${selectedDeclaration.objectDetails.color}</p>` : ''}
-                                                            ${selectedDeclaration.objectDetails?.serialNumber ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Numéro de série:</strong> ${selectedDeclaration.objectDetails.serialNumber}</p>` : ''}
-                                                            ${selectedDeclaration.objectDetails?.estimatedValue ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Valeur estimée:</strong> ${selectedDeclaration.objectDetails.estimatedValue} €</p>` : ''}
-                                                            ${selectedDeclaration.objectDetails?.identificationMarks ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Signes particuliers:</strong> ${selectedDeclaration.objectDetails.identificationMarks}</p>` : ''}
+                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Nature du document/objet perdu :</strong> ${selectedDeclaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
+                                                            ${selectedDeclaration.objectDetails?.serialNumber ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Numéro du document :</strong> ${selectedDeclaration.objectDetails.serialNumber}</p>` : ''}
+                                                            ${selectedDeclaration.objectDetails?.objectBrand ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Marque :</strong> ${selectedDeclaration.objectDetails.objectBrand}</p>` : ''}
+                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Date approximative de la perte :</strong> ${dayjs(selectedDeclaration.declarationDate).format('DD MMMM YYYY')}</p>
+                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Lieu présumé de la perte :</strong> ${selectedDeclaration.location}</p>
                                                         ` : ''}
-                                                        
-                                                        ${selectedDeclaration.declarationType === 'personne' && selectedDeclaration.personDetails ? `
-                                                            <h3 style="font-size: 18px; margin: 15px 0;">Détails de la personne disparue</h3>
-                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Nom:</strong> ${selectedDeclaration.personDetails.lastName}</p>
-                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Prénom:</strong> ${selectedDeclaration.personDetails.firstName}</p>
-                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Date de naissance:</strong> ${dayjs(selectedDeclaration.personDetails.dateOfBirth).format('DD MMMM YYYY')}</p>
-                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Âge:</strong> ${selectedDeclaration.personDetails.age} ans</p>
-                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Genre:</strong> ${selectedDeclaration.personDetails.gender}</p>
-                                                            ${selectedDeclaration.personDetails.height ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Taille:</strong> ${selectedDeclaration.personDetails.height} cm</p>` : ''}
-                                                            ${selectedDeclaration.personDetails.weight ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Poids:</strong> ${selectedDeclaration.personDetails.weight} kg</p>` : ''}
-                                                            ${selectedDeclaration.personDetails.clothing ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Vêtements:</strong> ${selectedDeclaration.personDetails.clothing}</p>` : ''}
-                                                            ${selectedDeclaration.personDetails.lastSeenLocation ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Dernier lieu vu:</strong> ${selectedDeclaration.personDetails.lastSeenLocation}</p>` : ''}
-                                                            ${selectedDeclaration.personDetails.lastSeenDate ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Dernière date de vue:</strong> ${dayjs(selectedDeclaration.personDetails.lastSeenDate).format('DD MMMM YYYY à HH:mm')}</p>` : ''}
-                                                            ${selectedDeclaration.personDetails.medicalConditions ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Conditions médicales:</strong> ${selectedDeclaration.personDetails.medicalConditions}</p>` : ''}
-                                                            ${selectedDeclaration.personDetails.contactInfo ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Contact d'urgence:</strong> ${selectedDeclaration.personDetails.contactInfo}</p>` : ''}
-                                                        ` : ''}
-                                                        
-                                                        <h3 style="font-size: 18px; margin: 15px 0;">Description détaillée</h3>
-                                                        <p style="font-size: 14px; margin: 5px 0;">${selectedDeclaration.description}</p>
                                                     </div>
-                                                    
-                                                    <div style="margin-top: 50px; border-top: 1px solid #000; padding-top: 20px;">
-                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Commissariat:</strong> ${selectedDeclaration.commissariat?.name || 'Non assigné'}</p>
-                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Adresse du commissariat:</strong> ${selectedDeclaration.commissariat?.address || 'Non disponible'}</p>
-                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Téléphone:</strong> ${selectedDeclaration.commissariat?.phone || 'Non disponible'}</p>
+
+                                                    <div style="margin-bottom: 30px;">
+                                                        <h2 style="font-size: 20px; margin-bottom: 15px;">UTILITÉ DE LA DÉCLARATION</h2>
+                                                        <p style="font-size: 14px; margin: 5px 0;">Cette déclaration est faite pour servir et valoir ce que de droit, notamment dans le cadre de la demande de renouvellement du document perdu, et comme preuve de bonne foi.</p>
+                                                    </div>
+
+                                                    <div style="margin-top: 50px;">
+                                                        <p style="font-size: 14px; margin: 5px 0;">Fait à : ${selectedDeclaration.commissariat?.name || 'Non assigné'}</p>
+                                                        <p style="font-size: 14px; margin: 5px 0;">Le : ${dayjs(selectedDeclaration.receiptDate).format('DD MMMM YYYY')}</p>
                                                         
-                                                        <div style="margin-top: 50px;">
-                                                            <p style="font-size: 14px; margin: 5px 0;">Signature et cachet du commissariat</p>
-                                                            <div style="border-top: 1px solid #000; width: 200px; margin-top: 50px;"></div>
+                                                        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+                                                            <div style="width: 45%;">
+                                                                <p style="font-size: 14px; margin: 5px 0;">Le Déclarant</p>
+                                                                <div style="border-top: 1px solid #000; width: 200px; margin-top: 50px;"></div>
+                                                            </div>
+                                                            <div style="width: 45%;">
+                                                                <p style="font-size: 14px; margin: 5px 0;">L'Officier de Police Judiciaire</p>
+                                                                <p style="font-size: 14px; margin: 5px 0;">Nom : ${selectedDeclaration.agentAssigned?.firstName} ${selectedDeclaration.agentAssigned?.lastName || 'Non assigné'}</p>
+                                                                <div style="border-top: 1px solid #000; width: 200px; margin-top: 50px;"></div>
+                                                                <p style="font-size: 14px; margin: 5px 0;">Signature et cachet du commissariat</p>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 `;

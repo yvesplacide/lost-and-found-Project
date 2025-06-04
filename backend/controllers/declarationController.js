@@ -265,9 +265,20 @@ export const updateDeclarationStatus = asyncHandler(async (req, res) => {
         throw new Error('Déclaration non trouvée');
     }
 
+    // Mettre à jour le statut et assigner l'agent qui effectue le changement
     declaration.status = status;
     declaration.processedAt = Date.now();
+    declaration.agentAssigned = req.user._id; // Assigner l'agent qui effectue le changement
     await declaration.save();
 
-    res.json(declaration);
+    // Récupérer la déclaration mise à jour avec les données populées
+    const updatedDeclaration = await Declaration.findById(declaration._id)
+        .populate({
+            path: 'user',
+            select: 'firstName lastName email phone address profession dateOfBirth birthPlace'
+        })
+        .populate('commissariat', 'name city')
+        .populate('agentAssigned', 'firstName lastName');
+
+    res.json(updatedDeclaration);
 });
