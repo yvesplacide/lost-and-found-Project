@@ -50,7 +50,7 @@ function HomePage() {
             return (
                 <div className="hero-content">
                     <h1>Bienvenue Agent {user.firstName}</h1>
-                    <p>Vous êtes connecté au commissariat de {user.commissariat?.name || 'votre commissariat'}. Gérez et suivez les déclarations de perte.</p>
+                    <p>Vous êtes connecté au commissariat de {user.commissariat?.name || 'votre commissariat'}. Gérez et suivez les déclarations de perte en temps réel.</p>
                     <div className="hero-buttons">
                         <Link to="/commissariat-dashboard" className="hero-btn primary-btn">
                             Gérer les déclarations
@@ -63,10 +63,27 @@ function HomePage() {
             );
         }
 
+        if (user?.role === 'admin') {
+            return (
+                <div className="hero-content">
+                    <h1>Bienvenue Administrateur {user.firstName}</h1>
+                    <p>Vous avez accès au panneau d'administration. Gérez les commissariats, les agents et les utilisateurs de la plateforme.</p>
+                    <div className="hero-buttons">
+                        <Link to="/admin-dashboard" className="hero-btn primary-btn">
+                            Accéder au panneau d'administration
+                        </Link>
+                        <Link to="/admin/statistics" className="hero-btn secondary-btn">
+                            Voir les statistiques globales
+                        </Link>
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <div className="hero-content">
                 <h1>Bienvenue {user?.firstName || 'sur la plateforme'}</h1>
-                <p>Vous êtes connecté à votre espace personnel. Vous pouvez déclarer une perte ou consulter vos déclarations existantes.</p>
+                <p>Vous êtes connecté à votre espace personnel. Déclarez une perte ou consultez vos déclarations existantes en quelques clics.</p>
                 <div className="hero-buttons">
                     <button 
                         onClick={handleDeclareLoss}
@@ -99,7 +116,7 @@ function HomePage() {
                 {renderHeroContent()}
             </section>
 
-            {user?.role !== 'commissariat_agent' && (
+            {!user || user.role === 'user' ? (
                 <>
                     <section className="features-section">
                         <div className="features-grid">
@@ -147,7 +164,7 @@ function HomePage() {
                         </div>
                     </section>
                 </>
-            )}
+            ) : null}
         </>
     );
 }

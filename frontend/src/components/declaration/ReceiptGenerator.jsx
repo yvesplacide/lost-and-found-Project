@@ -178,10 +178,16 @@ function ReceiptGenerator({ declaration, onReceiptGenerated }) {
             <button 
                 onClick={generateReceipt}
                 className="btn primary-btn"
-                disabled={isGenerating}
-                style={{ marginTop: '20px' }}
+                disabled={isGenerating || declaration.status === 'Refusée'}
+                style={{ 
+                    marginTop: '20px',
+                    opacity: declaration.status === 'Refusée' ? '0.6' : '1',
+                    cursor: declaration.status === 'Refusée' ? 'not-allowed' : 'pointer'
+                }}
             >
-                {isGenerating ? 'Génération en cours...' : 'Établir le récépissé officiel'}
+                {isGenerating ? 'Génération en cours...' : 
+                 declaration.status === 'Refusée' ? 'Récépissé non disponible' : 
+                 'Établir le récépissé officiel'}
             </button>
             {receiptNumber && (
                 <div className="receipt-info">

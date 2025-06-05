@@ -126,7 +126,13 @@ export const getDeclarations = asyncHandler(async (req, res) => {
 // @route   GET /api/declarations/my-declarations
 // @access  Private/User
 export const getMyDeclarations = asyncHandler(async (req, res) => {
-    const declarations = await Declaration.find({ user: req.user._id })
+    const declarations = await Declaration.find({ 
+        user: req.user._id,
+        $or: [
+            { isDeletedByUser: false },
+            { isDeletedByUser: { $exists: false } }
+        ]
+    })
         .populate({
             path: 'user',
             select: 'firstName lastName email phone address profession dateOfBirth birthPlace'
@@ -223,8 +229,16 @@ export const deleteDeclaration = asyncHandler(async (req, res) => {
         throw new Error('Non autorisé à supprimer cette déclaration');
     }
 
-    await declaration.deleteOne();
-    res.json({ message: 'Déclaration supprimée' });
+    // Si c'est un admin, supprimer réellement la déclaration
+    if (req.user.role === 'admin') {
+        await declaration.deleteOne();
+        res.json({ message: 'Déclaration supprimée définitivement' });
+    } else {
+        // Si c'est l'utilisateur, marquer comme supprimée
+        declaration.isDeletedByUser = true;
+        await declaration.save();
+        res.json({ message: 'Déclaration supprimée de votre tableau de bord' });
+    }
 });
 
 // @desc    Obtenir les déclarations d'un commissariat spécifique
@@ -241,6 +255,7 @@ export const getDeclarationsByCommissariat = asyncHandler(async (req, res) => {
     }
 
     // Récupérer les déclarations avec les données utilisateur populées
+    // Inclure toutes les déclarations, même celles supprimées par l'utilisateur
     const declarations = await Declaration.find({ commissariat: commissariatId })
         .populate({
             path: 'user',

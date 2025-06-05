@@ -22,7 +22,8 @@ function CommissariatDashboard() {
     const [selectedPhoto, setSelectedPhoto] = useState(null);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectReason, setRejectReason] = useState('');
-    const [activeTab, setActiveTab] = useState('pending'); // 'pending' ou 'rejected'
+    const [activeTab, setActiveTab] = useState('pending');
+    const [activeSidebarTab, setActiveSidebarTab] = useState('dashboard');
     const location = useLocation();
 
     const fetchCommissariatDeclarations = async () => {
@@ -117,7 +118,7 @@ function CommissariatDashboard() {
 
         try {
             const updateData = {
-                status: 'Refusée', // Envoyer le statut "Refusée" au serveur
+                status: 'Refusée',
                 rejectReason: rejectReason.trim(),
                 agentAssigned: user._id,
                 updatedAt: new Date().toISOString()
@@ -150,37 +151,227 @@ function CommissariatDashboard() {
         }
     };
 
+    const renderContent = () => {
+        switch (activeSidebarTab) {
+            case 'dashboard':
+                return (
+                    <>
+                        <h2>Tableau de Bord du Commissariat</h2>
+                        {user && (
+                            <div>
+                                <p>Bienvenue, {user.firstName} !</p>
+                                {user.commissariat && (
+                                    <p>Vous gérez les déclarations du commissariat de {
+                                        typeof user.commissariat === 'object' && user.commissariat !== null
+                                            ? `${user.commissariat.name} (${user.commissariat.city})`
+                                            : 'votre commissariat'
+                                    }.</p>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="declaration-tabs">
+                            <button 
+                                className={`tab-button ${activeTab === 'pending' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('pending')}
+                            >
+                                Déclarations en attente
+                            </button>
+                            <button 
+                                className={`tab-button ${activeTab === 'rejected' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('rejected')}
+                            >
+                                Déclarations refusées
+                            </button>
+                            <button 
+                                className={`tab-button ${activeTab === 'processed' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('processed')}
+                            >
+                                Déclarations traitées
+                            </button>
+                        </div>
+
+                        <div className="declaration-list-container">
+                            <h3>{
+                                activeTab === 'pending' ? 'Déclarations en Attente' :
+                                activeTab === 'rejected' ? 'Déclarations Refusées' :
+                                'Déclarations Traitées'
+                            }</h3>
+                            {loading ? (
+                                <div className="loading-container">
+                                    <div className="loading-spinner"></div>
+                                    <p>Chargement des données...</p>
+                                </div>
+                            ) : error ? (
+                                <div className="error-container">
+                                    <p className="error-message">{error}</p>
+                                    <button onClick={fetchCommissariatDeclarations} className="btn primary-btn">
+                                        Réessayer
+                                    </button>
+                                </div>
+                            ) : (activeTab === 'pending' ? declarations : 
+                                 activeTab === 'rejected' ? rejectedDeclarations :
+                                 declarations.filter(decl => decl.status === 'Traité')).length === 0 ? (
+                                <p>Aucune déclaration {
+                                    activeTab === 'pending' ? 'en attente' :
+                                    activeTab === 'rejected' ? 'refusée' :
+                                    'traitée'
+                                } pour votre commissariat pour l'instant.</p>
+                            ) : (
+                                <div className="declaration-cards">
+                                    {(activeTab === 'pending' ? declarations : 
+                                      activeTab === 'rejected' ? rejectedDeclarations :
+                                      declarations.filter(decl => decl.status === 'Traité')).map((declaration) => (
+                                        <div 
+                                            key={declaration._id} 
+                                            className="declaration-card"
+                                            onClick={() => openDetailsModal(declaration)}
+                                            style={{ cursor: 'pointer' }}
+                                            title="Cliquez ici pour voir les détails de la déclaration"
+                                        >
+                                            <div className="declaration-info">
+                                                <h4>Déclaration de {declaration.declarationType === 'objet' ? 'perte d\'objet' : 'disparition de personne'}</h4>
+                                                <p><strong>N° de déclaration:</strong> {declaration._id}</p>
+                                                <p><strong>Statut:</strong> <span className={`status-${declaration.status.toLowerCase().replace(/\s/g, '-')}`}>{declaration.status}</span></p>
+                                                {declaration.status === 'Refusée' && declaration.rejectReason && (
+                                                    <p><strong>Motif du refus:</strong> {declaration.rejectReason}</p>
+                                                )}
+                                                <p><strong>Déclarant:</strong> {declaration.user ? `${declaration.user.firstName} ${declaration.user.lastName}` : 'Inconnu'}</p>
+                                                {declaration.declarationType === 'objet' && (
+                                                    <>
+                                                        <p><strong>Catégorie:</strong> {declaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
+                                                        <p><strong>Nom:</strong> {declaration.objectDetails?.objectName || 'Non spécifié'}</p>
+                                                        <p><strong>Marque:</strong> {declaration.objectDetails?.objectBrand || 'Non spécifiée'}</p>
+                                                    </>
+                                                )}
+                                            </div>
+
+                                            {declaration.photos && declaration.photos.length > 0 ? (
+                                                <div className="declaration-photos" onClick={e => e.stopPropagation()}>
+                                                    {declaration.photos.map((photo, index) => (
+                                                        <img 
+                                                            key={index} 
+                                                            src={`http://localhost:5000/uploads/${photo}`} 
+                                                            alt={`Photo ${index + 1}`} 
+                                                            className="declaration-photo-thumbnail"
+                                                            onClick={(e) => openPhotoModal(`http://localhost:5000/uploads/${photo}`, e)}
+                                                            title="Cliquez pour voir la photo en grand"
+                                                        />
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="no-photos">
+                                                    <p>Aucune photo disponible</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </>
+                );
+            case 'statistics':
+                return (
+                    <div className="statistics-container">
+                        <h2>Statistiques</h2>
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <h3>Total des déclarations</h3>
+                                <p className="stat-number">{declarations.length + rejectedDeclarations.length}</p>
+                            </div>
+                            <div className="stat-card">
+                                <h3>En attente</h3>
+                                <p className="stat-number">{declarations.length}</p>
+                            </div>
+                            <div className="stat-card">
+                                <h3>Refusées</h3>
+                                <p className="stat-number">{rejectedDeclarations.length}</p>
+                            </div>
+                            <div className="stat-card">
+                                <h3>Traitées</h3>
+                                <p className="stat-number">{declarations.filter(decl => decl.status === 'Traité').length}</p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 'notifications':
+                return (
+                    <div className="notifications-container">
+                        <h2>Notifications</h2>
+                        <div className="notifications-list">
+                            {/* Contenu des notifications */}
+                            <p>Vos notifications apparaîtront ici</p>
+                        </div>
+                    </div>
+                );
+            case 'settings':
+                return (
+                    <div className="settings-container">
+                        <h2>Paramètres</h2>
+                        <div className="settings-form">
+                            {/* Formulaire des paramètres */}
+                            <p>Les paramètres de votre commissariat apparaîtront ici</p>
+                        </div>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
     return (
         <div className="dashboard commissariat-dashboard">
             {/* Sidebar */}
             <aside className="sidebar">
+                {user && user.commissariat && (
+                    <div className="commissariat-info">
+                        <h3>{
+                            typeof user.commissariat === 'object' && user.commissariat !== null
+                                ? user.commissariat.name
+                                : 'Votre Commissariat'
+                        }</h3>
+                        <p>{
+                            typeof user.commissariat === 'object' && user.commissariat !== null
+                                ? user.commissariat.city
+                                : ''
+                        }</p>
+                    </div>
+                )}
                 <nav>
                     <ul className="sidebar-menu">
                         <li>
-                            <Link to="/commissariat-dashboard" className={location.pathname === '/commissariat-dashboard' ? 'active' : ''}>
+                            <button 
+                                className={`sidebar-link ${activeSidebarTab === 'dashboard' ? 'active' : ''}`}
+                                onClick={() => setActiveSidebarTab('dashboard')}
+                            >
                                 <FaHome /> Tableau de bord
-                            </Link>
+                            </button>
                         </li>
                         <li>
-                            <Link to="/commissariat-dashboard/declarations" className={location.pathname === '/commissariat-dashboard/declarations' ? 'active' : ''}>
-                                <FaList /> Déclarations traitées
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/commissariat-dashboard/statistics" className={location.pathname === '/commissariat-dashboard/statistics' ? 'active' : ''}>
+                            <button 
+                                className={`sidebar-link ${activeSidebarTab === 'statistics' ? 'active' : ''}`}
+                                onClick={() => setActiveSidebarTab('statistics')}
+                            >
                                 <FaChartBar /> Statistiques
-                            </Link>
+                            </button>
                         </li>
                         <li>
-                            <Link to="/commissariat-dashboard/notifications" className={location.pathname === '/commissariat-dashboard/notifications' ? 'active' : ''} style={{ position: 'relative' }}>
+                            <button 
+                                className={`sidebar-link ${activeSidebarTab === 'notifications' ? 'active' : ''}`}
+                                onClick={() => setActiveSidebarTab('notifications')}
+                            >
                                 <FaBell /> Notifications
                                 <NotificationCounter />
-                            </Link>
+                            </button>
                         </li>
                         <li>
-                            <Link to="/commissariat-dashboard/settings" className={location.pathname === '/commissariat-dashboard/settings' ? 'active' : ''}>
+                            <button 
+                                className={`sidebar-link ${activeSidebarTab === 'settings' ? 'active' : ''}`}
+                                onClick={() => setActiveSidebarTab('settings')}
+                            >
                                 <FaCog /> Paramètres
-                            </Link>
+                            </button>
                         </li>
                     </ul>
                 </nav>
@@ -188,271 +379,169 @@ function CommissariatDashboard() {
 
             {/* Contenu principal */}
             <main className="dashboard-content">
-                <h2>Tableau de Bord du Commissariat</h2>
-                {user && (
-                    <div>
-                        <p>Bienvenue, {user.firstName} !</p>
-                        {user.commissariat && (
-                            <p>Vous gérez les déclarations du commissariat de {
-                                typeof user.commissariat === 'object' && user.commissariat !== null
-                                    ? `${user.commissariat.name} (${user.commissariat.city})`
-                                    : 'votre commissariat'
-                            }.</p>
+                {renderContent()}
+            </main>
+
+            {/* Modal pour les détails de la déclaration */}
+            {selectedDeclaration && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <button className="modal-close-btn" onClick={closeDetailsModal}>&times;</button>
+                        <h3>Détails de la Déclaration {selectedDeclaration.receiptNumber ? `: ${selectedDeclaration.receiptNumber}` : ''}</h3>
+                        
+                        <div className="details-section">
+                            <h4>Informations Générales</h4>
+                            <p><strong>Type:</strong> {selectedDeclaration.declarationType === 'objet' ? 'Perte d\'objet' : 'Disparition de personne'}</p>
+                            {selectedDeclaration.declarationType === 'objet' && (
+                                <>
+                                    <p><strong>Catégorie:</strong> {selectedDeclaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
+                                    <p><strong>Nom:</strong> {selectedDeclaration.objectDetails?.objectName || 'Non spécifié'}</p>
+                                    <p><strong>Marque:</strong> {selectedDeclaration.objectDetails?.objectBrand || 'Non spécifiée'}</p>
+                                </>
+                            )}
+                            <p><strong>Statut:</strong> {selectedDeclaration.status}</p>
+                            {selectedDeclaration.status === 'Refusée' && selectedDeclaration.rejectReason && (
+                                <p><strong>Motif du refus:</strong> {selectedDeclaration.rejectReason}</p>
+                            )}
+                            <p><strong>Date:</strong> {dayjs(selectedDeclaration.declarationDate).format('DD MMMM YYYY à HH:mm')}</p>
+                            <p><strong>Lieu:</strong> {selectedDeclaration.location}</p>
+                            <p><strong>Description:</strong> {selectedDeclaration.description}</p>
+                        </div>
+
+                        <div className="details-section">
+                            <h4>Informations du Déclarant</h4>
+                            <p><strong>Nom:</strong> {selectedDeclaration.user?.firstName} {selectedDeclaration.user?.lastName}</p>
+                            <p><strong>Email:</strong> {selectedDeclaration.user?.email}</p>
+                            <p><strong>Téléphone:</strong> {selectedDeclaration.user?.phone || 'Non renseigné'}</p>
+                        </div>
+
+                        {selectedDeclaration.declarationType === 'personne' && selectedDeclaration.personDetails && (
+                            <div className="details-section">
+                                <h4>Détails de la personne</h4>
+                                <p><strong>Nom:</strong> {selectedDeclaration.personDetails.lastName}, <strong>Prénom:</strong> {selectedDeclaration.personDetails.firstName}</p>
+                                <p><strong>Date de naissance:</strong> {dayjs(selectedDeclaration.personDetails.dateOfBirth).format('DD MMMM YYYY')}</p>
+                                {selectedDeclaration.personDetails.lastSeenLocation && <p><strong>Dernier lieu vu:</strong> {selectedDeclaration.personDetails.lastSeenLocation}</p>}
+                            </div>
                         )}
-                    </div>
-                )}
 
-                <div className="declaration-tabs">
-                    <button 
-                        className={`tab-button ${activeTab === 'pending' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('pending')}
-                    >
-                        Déclarations en attente
-                    </button>
-                    <button 
-                        className={`tab-button ${activeTab === 'rejected' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('rejected')}
-                    >
-                        Déclarations refusées
-                    </button>
-                </div>
+                        {selectedDeclaration.commissariat && (
+                            <div className="details-section">
+                                <h4>Commissariat assigné</h4>
+                                <p><strong>Nom:</strong> {selectedDeclaration.commissariat.name}</p>
+                                <p><strong>Ville:</strong> {selectedDeclaration.commissariat.city}</p>
+                                <p><strong>Adresse:</strong> {selectedDeclaration.commissariat.address}</p>
+                                <p><strong>Email:</strong> {selectedDeclaration.commissariat.email}</p>
+                                <p><strong>Téléphone:</strong> {selectedDeclaration.commissariat.phone}</p>
+                            </div>
+                        )}
 
-                <div className="declaration-list-container">
-                    <h3>{activeTab === 'pending' ? 'Déclarations en Attente' : 'Déclarations Refusées'}</h3>
-                    {loading ? (
-                        <div className="loading-container">
-                            <div className="loading-spinner"></div>
-                            <p>Chargement des données...</p>
-                        </div>
-                    ) : error ? (
-                        <div className="error-container">
-                            <p className="error-message">{error}</p>
-                            <button onClick={fetchCommissariatDeclarations} className="btn primary-btn">
-                                Réessayer
-                            </button>
-                        </div>
-                    ) : (activeTab === 'pending' ? declarations : rejectedDeclarations).length === 0 ? (
-                        <p>Aucune déclaration {activeTab === 'pending' ? 'en attente' : 'refusée'} pour votre commissariat pour l'instant.</p>
-                    ) : (
-                        <div className="declaration-cards">
-                            {(activeTab === 'pending' ? declarations : rejectedDeclarations).map((declaration) => (
-                                <div 
-                                    key={declaration._id} 
-                                    className="declaration-card"
-                                    onClick={() => openDetailsModal(declaration)}
-                                    style={{ cursor: 'pointer' }}
-                                    title="Cliquez ici pour voir les détails de la déclaration"
+                        {/* Bouton de refus pour les déclarations en attente */}
+                        {selectedDeclaration.status === 'En attente' && (
+                            <div className="action-buttons">
+                                <button 
+                                    className="btn reject-btn"
+                                    onClick={() => setShowRejectModal(true)}
                                 >
-                                    <div className="declaration-info">
-                                        <h4>Déclaration de {declaration.declarationType === 'objet' ? 'perte d\'objet' : 'disparition de personne'}</h4>
-                                        <p><strong>N° de déclaration:</strong> {declaration._id}</p>
-                                        <p><strong>Statut:</strong> <span className={`status-${declaration.status.toLowerCase().replace(/\s/g, '-')}`}>{declaration.status}</span></p>
-                                        {declaration.status === 'Refusée' && declaration.rejectReason && (
-                                            <p><strong>Motif du refus:</strong> {declaration.rejectReason}</p>
-                                        )}
-                                        <p><strong>Déclarant:</strong> {declaration.user ? `${declaration.user.firstName} ${declaration.user.lastName}` : 'Inconnu'}</p>
-                                        {declaration.declarationType === 'objet' && (
-                                            <>
-                                                <p><strong>Catégorie:</strong> {declaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
-                                                <p><strong>Nom:</strong> {declaration.objectDetails?.objectName || 'Non spécifié'}</p>
-                                                <p><strong>Marque:</strong> {declaration.objectDetails?.objectBrand || 'Non spécifiée'}</p>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    {declaration.photos && declaration.photos.length > 0 ? (
-                                        <div className="declaration-photos" onClick={e => e.stopPropagation()}>
-                                            {declaration.photos.map((photo, index) => (
-                                                <img 
-                                                    key={index} 
-                                                    src={`http://localhost:5000/uploads/${photo}`} 
-                                                    alt={`Photo ${index + 1}`} 
-                                                    className="declaration-photo-thumbnail"
-                                                    onClick={(e) => openPhotoModal(`http://localhost:5000/uploads/${photo}`, e)}
-                                                    title="Cliquez pour voir la photo en grand"
-                                                />
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="no-photos">
-                                            <p>Aucune photo disponible</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Modal pour les détails de la déclaration */}
-                {selectedDeclaration && (
-                    <div className="modal-overlay">
-                        <div className="modal-content">
-                            <button className="modal-close-btn" onClick={closeDetailsModal}>&times;</button>
-                            <h3>Détails de la Déclaration {selectedDeclaration.receiptNumber ? `: ${selectedDeclaration.receiptNumber}` : ''}</h3>
-                            
-                            <div className="details-section">
-                                <h4>Informations Générales</h4>
-                                <p><strong>Type:</strong> {selectedDeclaration.declarationType === 'objet' ? 'Perte d\'objet' : 'Disparition de personne'}</p>
-                                {selectedDeclaration.declarationType === 'objet' && (
-                                    <>
-                                        <p><strong>Catégorie:</strong> {selectedDeclaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
-                                        <p><strong>Nom:</strong> {selectedDeclaration.objectDetails?.objectName || 'Non spécifié'}</p>
-                                        <p><strong>Marque:</strong> {selectedDeclaration.objectDetails?.objectBrand || 'Non spécifiée'}</p>
-                                    </>
-                                )}
-                                <p><strong>Statut:</strong> {selectedDeclaration.status}</p>
-                                {selectedDeclaration.status === 'Refusée' && selectedDeclaration.rejectReason && (
-                                    <p><strong>Motif du refus:</strong> {selectedDeclaration.rejectReason}</p>
-                                )}
-                                <p><strong>Date:</strong> {dayjs(selectedDeclaration.declarationDate).format('DD MMMM YYYY à HH:mm')}</p>
-                                <p><strong>Lieu:</strong> {selectedDeclaration.location}</p>
-                                <p><strong>Description:</strong> {selectedDeclaration.description}</p>
+                                    Refuser la déclaration
+                                </button>
                             </div>
+                        )}
 
+                        {selectedDeclaration.photos && selectedDeclaration.photos.length > 0 && (
                             <div className="details-section">
-                                <h4>Informations du Déclarant</h4>
-                                <p><strong>Nom:</strong> {selectedDeclaration.user?.firstName} {selectedDeclaration.user?.lastName}</p>
-                                <p><strong>Email:</strong> {selectedDeclaration.user?.email}</p>
-                                <p><strong>Téléphone:</strong> {selectedDeclaration.user?.phone || 'Non renseigné'}</p>
-                            </div>
-
-                            {selectedDeclaration.declarationType === 'personne' && selectedDeclaration.personDetails && (
-                                <div className="details-section">
-                                    <h4>Détails de la personne</h4>
-                                    <p><strong>Nom:</strong> {selectedDeclaration.personDetails.lastName}, <strong>Prénom:</strong> {selectedDeclaration.personDetails.firstName}</p>
-                                    <p><strong>Date de naissance:</strong> {dayjs(selectedDeclaration.personDetails.dateOfBirth).format('DD MMMM YYYY')}</p>
-                                    {selectedDeclaration.personDetails.lastSeenLocation && <p><strong>Dernier lieu vu:</strong> {selectedDeclaration.personDetails.lastSeenLocation}</p>}
-                                </div>
-                            )}
-
-                            {selectedDeclaration.commissariat && (
-                                <div className="details-section">
-                                    <h4>Commissariat assigné</h4>
-                                    <p><strong>Nom:</strong> {selectedDeclaration.commissariat.name}</p>
-                                    <p><strong>Ville:</strong> {selectedDeclaration.commissariat.city}</p>
-                                    <p><strong>Adresse:</strong> {selectedDeclaration.commissariat.address}</p>
-                                    <p><strong>Email:</strong> {selectedDeclaration.commissariat.email}</p>
-                                    <p><strong>Téléphone:</strong> {selectedDeclaration.commissariat.phone}</p>
-                                </div>
-                            )}
-
-                            {selectedDeclaration.photos && selectedDeclaration.photos.length > 0 && (
-                                <div className="details-section">
-                                    <h4>Photos</h4>
-                                    <div className="photo-grid">
-                                        {selectedDeclaration.photos.map((photo, index) => (
-                                            <img 
-                                                key={index} 
-                                                src={`http://localhost:5000/uploads/${photo}`} 
-                                                alt={`Photo ${index + 1}`} 
-                                                className="declaration-photo"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openPhotoModal(`http://localhost:5000/uploads/${photo}`, e);
-                                                }}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Section du récépissé */}
-                            <div className="receipt-section">
-                                <h4>Récépissé Officiel</h4>
-                                {selectedDeclaration.receiptNumber ? (
-                                    <div className="receipt-info">
-                                        <p>Récépissé N° {selectedDeclaration.receiptNumber} établi le {dayjs(selectedDeclaration.receiptDate).format('DD/MM/YYYY')}</p>
-                                        <p className="receipt-status">Le déclarant peut télécharger ce récépissé depuis son espace personnel</p>
-                                    </div>
-                                ) : (
-                                    <div className="receipt-actions">
-                                        <p>Établir un récépissé officiel pour cette déclaration</p>
-                                        <ReceiptGenerator 
-                                            declaration={selectedDeclaration} 
-                                            onReceiptGenerated={(receiptNumber) => {
-                                                const updatedDeclaration = {
-                                                    ...selectedDeclaration,
-                                                    receiptNumber,
-                                                    receiptDate: new Date().toISOString(),
-                                                    status: 'Traité'
-                                                };
-
-                                                setDeclarations(prev => prev.filter(decl => decl._id !== selectedDeclaration._id));
-                                                setSelectedDeclaration(updatedDeclaration);
-
-                                                api.put(`/declarations/${selectedDeclaration._id}/status`, {
-                                                    status: 'Traité',
-                                                    agentAssigned: user._id
-                                                }).catch(err => {
-                                                    console.error('Erreur lors de la mise à jour du statut:', err);
-                                                    toast.error('Erreur lors de la mise à jour du statut');
-                                                });
-
-                                                toast.success('Récépissé généré avec succès');
+                                <h4>Photos</h4>
+                                <div className="photo-grid">
+                                    {selectedDeclaration.photos.map((photo, index) => (
+                                        <img 
+                                            key={index} 
+                                            src={`http://localhost:5000/uploads/${photo}`} 
+                                            alt={`Photo ${index + 1}`} 
+                                            className="declaration-photo"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                openPhotoModal(`http://localhost:5000/uploads/${photo}`, e);
                                             }}
                                         />
-                                    </div>
-                                )}
+                                    ))}
+                                </div>
                             </div>
+                        )}
 
-                            {/* Bouton de refus pour les déclarations en attente */}
-                            {selectedDeclaration.status === 'En attente' && (
-                                <div className="action-buttons">
-                                    <button 
-                                        className="btn reject-btn"
-                                        onClick={() => setShowRejectModal(true)}
-                                    >
-                                        Refuser la déclaration
-                                    </button>
+                        {/* Section du récépissé */}
+                        <div className="receipt-section">
+                            <h4>Récépissé Officiel</h4>
+                            {selectedDeclaration.receiptNumber ? (
+                                <div className="receipt-info">
+                                    <p>Récépissé N° {selectedDeclaration.receiptNumber} établi le {dayjs(selectedDeclaration.receiptDate).format('DD/MM/YYYY')}</p>
+                                    <p className="receipt-status">Le déclarant peut télécharger ce récépissé depuis son espace personnel</p>
+                                </div>
+                            ) : (
+                                <div className="receipt-actions">
+                                    <p>Établir un récépissé officiel pour cette déclaration</p>
+                                    <ReceiptGenerator 
+                                        declaration={selectedDeclaration} 
+                                        onReceiptGenerated={(receiptNumber) => {
+                                            const updatedDeclaration = {
+                                                ...selectedDeclaration,
+                                                receiptNumber,
+                                                receiptDate: new Date().toISOString(),
+                                                status: 'Traité'
+                                            };
+
+                                            setDeclarations(prev => prev.filter(decl => decl._id !== selectedDeclaration._id));
+                                            setSelectedDeclaration(updatedDeclaration);
+
+                                            api.put(`/declarations/${updatedDeclaration._id}/status`, updatedDeclaration);
+                                        }}
+                                    />
                                 </div>
                             )}
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {/* Modal de confirmation de refus */}
-                {showRejectModal && (
-                    <div className="modal-overlay">
-                        <div className="modal-content reject-modal">
-                            <button className="modal-close-btn" onClick={() => setShowRejectModal(false)}>&times;</button>
-                            <h3>Refuser la déclaration</h3>
-                            <p>Veuillez indiquer le motif du refus :</p>
-                            <textarea
-                                value={rejectReason}
-                                onChange={(e) => setRejectReason(e.target.value)}
-                                placeholder="Saisissez le motif du refus..."
-                                rows="4"
-                                className="reject-reason-input"
-                            />
-                            <div className="modal-actions">
-                                <button 
-                                    className="btn cancel-btn"
-                                    onClick={() => setShowRejectModal(false)}
-                                >
-                                    Annuler
-                                </button>
-                                <button 
-                                    className="btn confirm-reject-btn"
-                                    onClick={handleRejectDeclaration}
-                                >
-                                    Confirmer le refus
-                                </button>
-                            </div>
+            {/* Modal de confirmation de refus */}
+            {showRejectModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content reject-modal">
+                        <button className="modal-close-btn" onClick={() => setShowRejectModal(false)}>&times;</button>
+                        <h3>Refuser la déclaration</h3>
+                        <p>Veuillez indiquer le motif du refus :</p>
+                        <textarea
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                            placeholder="Saisissez le motif du refus..."
+                            rows="4"
+                            className="reject-reason-input"
+                        />
+                        <div className="modal-actions">
+                            <button 
+                                className="btn cancel-btn"
+                                onClick={() => setShowRejectModal(false)}
+                            >
+                                Annuler
+                            </button>
+                            <button 
+                                className="btn confirm-reject-btn"
+                                onClick={handleRejectDeclaration}
+                            >
+                                Confirmer le refus
+                            </button>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {/* Modal pour les photos en grand */}
-                {selectedPhoto && (
-                    <div className="modal-overlay" onClick={closePhotoModal}>
-                        <div className="photo-modal-content" onClick={e => e.stopPropagation()}>
-                            <button className="modal-close-btn" onClick={closePhotoModal}>&times;</button>
-                            <img src={selectedPhoto} alt="Photo en grand" className="full-size-photo" />
-                        </div>
+            {/* Modal pour les photos en grand */}
+            {selectedPhoto && (
+                <div className="modal-overlay" onClick={closePhotoModal}>
+                    <div className="photo-modal-content" onClick={e => e.stopPropagation()}>
+                        <button className="modal-close-btn" onClick={closePhotoModal}>&times;</button>
+                        <img src={selectedPhoto} alt="Photo en grand" className="full-size-photo" />
                     </div>
-                )}
-            </main>
+                </div>
+            )}
         </div>
     );
 }

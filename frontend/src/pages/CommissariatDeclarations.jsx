@@ -24,7 +24,8 @@ function CommissariatDeclarations() {
     const [filters, setFilters] = useState({
         status: 'all',
         dateRange: 'all',
-        type: 'all'
+        type: 'all',
+        search: ''
     });
     const location = useLocation();
 
@@ -153,6 +154,25 @@ function CommissariatDeclarations() {
 
     const filterDeclarations = (declarations) => {
         return declarations.filter(decl => {
+            // Filtre de recherche
+            if (filters.search) {
+                const searchTerm = filters.search.toLowerCase();
+                const searchableFields = [
+                    decl._id,
+                    decl.user?.firstName,
+                    decl.user?.lastName,
+                    decl.declarationType,
+                    decl.status,
+                    decl.location,
+                    decl.description
+                ].filter(Boolean).map(field => field.toLowerCase());
+                
+                if (!searchableFields.some(field => field.includes(searchTerm))) {
+                    return false;
+                }
+            }
+
+            // Autres filtres
             if (filters.status !== 'all' && decl.status !== filters.status) return false;
             if (filters.type !== 'all' && decl.declarationType !== filters.type) return false;
             if (filters.dateRange !== 'all') {
@@ -283,6 +303,14 @@ function CommissariatDeclarations() {
 
                 {/* Filtres */}
                 <div className="filters-section">
+                    <div className="search-bar">
+                        <input
+                            type="text"
+                            placeholder="Rechercher une déclaration..."
+                            value={filters.search}
+                            onChange={(e) => handleFilterChange('search', e.target.value)}
+                        />
+                    </div>
                     <div className="filter-group">
                         <label>Type:</label>
                         <select 

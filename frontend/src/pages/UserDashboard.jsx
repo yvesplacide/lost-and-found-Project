@@ -21,6 +21,8 @@ function UserDashboard() {
     const [selectedDeclaration, setSelectedDeclaration] = useState(null);
     const [showDeclarationForm, setShowDeclarationForm] = useState(false);
     const [selectedPhoto, setSelectedPhoto] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [activeFilter, setActiveFilter] = useState('all');
 
     const fetchUserDeclarations = async () => {
         try {
@@ -72,10 +74,31 @@ function UserDashboard() {
         setShowDeclarationForm(true);
     };
 
+    const handleEditDeclaration = (declaration) => {
+        setSelectedDeclaration(declaration);
+        setIsEditing(true);
+        setShowDeclarationForm(true);
+    };
+
     const handleDeclarationSubmit = async (newDeclaration) => {
+        if (isEditing) {
+            try {
+                const response = await api.put(`/declarations/${selectedDeclaration._id}`, newDeclaration);
+                setDeclarations(prev => prev.map(decl => 
+                    decl._id === selectedDeclaration._id ? response.data : decl
+                ));
+                toast.success('Déclaration modifiée avec succès !');
+            } catch (err) {
+                console.error('Erreur lors de la modification de la déclaration:', err);
+                toast.error(err.response?.data?.message || 'Erreur lors de la modification de la déclaration');
+            }
+        } else {
         await fetchUserDeclarations();
+            toast.success('Déclaration créée avec succès !');
+        }
         setShowDeclarationForm(false);
-        toast.success('Déclaration créée avec succès !');
+        setIsEditing(false);
+        setSelectedDeclaration(null);
     };
 
     const handleDownloadReceipt = async (declaration) => {
@@ -120,6 +143,30 @@ function UserDashboard() {
         }
     };
 
+    const handleDeleteDeclaration = async (declarationId) => {
+        try {
+            await api.delete(`/declarations/${declarationId}`);
+            setDeclarations(prev => prev.filter(decl => decl._id !== declarationId));
+            toast.success('Déclaration supprimée avec succès');
+        } catch (err) {
+            console.error('Erreur lors de la suppression de la déclaration:', err);
+            toast.error(err.response?.data?.message || 'Erreur lors de la suppression de la déclaration');
+        }
+    };
+
+    const filteredDeclarations = declarations.filter(declaration => {
+        switch (activeFilter) {
+            case 'pending':
+                return declaration.status === 'En attente';
+            case 'completed':
+                return declaration.status === 'Traité';
+            case 'rejected':
+                return declaration.status === 'Refusée';
+            default:
+                return true;
+        }
+    });
+
     if (loading) {
         return <div className="dashboard-loading">Chargement de vos déclarations...</div>;
     }
@@ -141,15 +188,15 @@ function UserDashboard() {
                     <div className="number">{declarations.length}</div>
                 </div>
                 <div className="stat-card">
-                    <h3>En cours de traitement</h3>
+                    <h3>En attente</h3>
                     <div className="number">
-                        {declarations.filter(d => d.status === 'En cours de traitement').length}
+                        {declarations.filter(d => d.status === 'En attente').length}
                     </div>
                 </div>
                 <div className="stat-card">
                     <h3>Traitées</h3>
                     <div className="number">
-                        {declarations.filter(d => d.status === 'Traitée').length}
+                        {declarations.filter(d => d.status === 'Traité').length}
                     </div>
                 </div>
             </div>
@@ -169,12 +216,39 @@ function UserDashboard() {
 
             {!showDeclarationForm && (
                 <div className="declaration-list-container">
+                    <div className="declaration-filters">
+                        <button 
+                            className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
+                            onClick={() => setActiveFilter('all')}
+                        >
+                            Toutes les déclarations
+                        </button>
+                        <button 
+                            className={`filter-btn ${activeFilter === 'pending' ? 'active' : ''}`}
+                            onClick={() => setActiveFilter('pending')}
+                        >
+                            En attente
+                        </button>
+                        <button 
+                            className={`filter-btn ${activeFilter === 'completed' ? 'active' : ''}`}
+                            onClick={() => setActiveFilter('completed')}
+                        >
+                            Traitées
+                        </button>
+                        <button 
+                            className={`filter-btn ${activeFilter === 'rejected' ? 'active' : ''}`}
+                            onClick={() => setActiveFilter('rejected')}
+                        >
+                            Refusées
+                        </button>
+                    </div>
+
                     <h3>Mes déclarations</h3>
-                    {declarations.length === 0 ? (
-                        <p>Vous n'avez pas encore de déclarations.</p>
+                    {filteredDeclarations.length === 0 ? (
+                        <p>Aucune déclaration {activeFilter !== 'all' ? 'dans cette catégorie' : ''}.</p>
                     ) : (
                         <div className="declaration-cards">
-                            {declarations.map((declaration) => (
+                            {filteredDeclarations.map((declaration) => (
                                 <div 
                                     key={declaration._id} 
                                     className="declaration-card"
@@ -240,6 +314,26 @@ function UserDashboard() {
                             <p><strong>Lieu:</strong> {selectedDeclaration.location}</p>
                             <p><strong>Description:</strong> {selectedDeclaration.description}</p>
                             <p><strong>Commissariat:</strong> {selectedDeclaration.commissariat?.name || 'Non assigné'}</p>
+
+                            {/* Boutons d'action selon le statut */}
+                            <div className="modal-footer">
+                                {selectedDeclaration.status === 'En attente' && (
+                                    <button 
+                                        onClick={() => handleEditDeclaration(selectedDeclaration)}
+                                        className="btn edit-btn"
+                                    >
+                                        Modifier la déclaration
+                                    </button>
+                                )}
+                                {selectedDeclaration.status === 'Refusée' && (
+                                    <button 
+                                        onClick={() => handleDeleteDeclaration(selectedDeclaration._id)}
+                                        className="btn delete-btn"
+                                    >
+                                        Supprimer la déclaration
+                                    </button>
+                                )}
+                            </div>
 
                             {/* Détails spécifiques pour les objets perdus */}
                             {selectedDeclaration.declarationType === 'objet' && (

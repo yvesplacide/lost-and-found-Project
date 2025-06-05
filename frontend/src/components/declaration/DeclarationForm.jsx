@@ -10,6 +10,7 @@ function DeclarationForm({ onSubmitSuccess }) {
     const declarationType = watch('declarationType'); // Observe le type de déclaration pour afficher les champs conditionnels
     const [commissariats, setCommissariats] = useState([]);
     const [loadingCommissariats, setLoadingCommissariats] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         // Charger la liste des commissariats au montage du composant
@@ -29,6 +30,7 @@ function DeclarationForm({ onSubmitSuccess }) {
 
     const onSubmit = async (data) => {
         try {
+            setIsSubmitting(true);
             console.log('Données du formulaire avant envoi:', data);
             // Ajuster la date pour correspondre au format attendu par le backend (ISO 8601)
             data.declarationDate = dayjs(data.declarationDate).toISOString();
@@ -80,6 +82,8 @@ function DeclarationForm({ onSubmitSuccess }) {
         } catch (error) {
             console.error('Erreur lors de la soumission de la déclaration:', error);
             toast.error(error.response?.data?.message || 'Erreur lors de la soumission de la déclaration.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -283,8 +287,14 @@ function DeclarationForm({ onSubmitSuccess }) {
                     <label htmlFor="commissariat">Commissariat</label>
                     <select
                         id="commissariat"
-                        {...register('commissariat', { required: 'Le commissariat est requis' })}
+                        {...register('commissariat', { 
+                            required: 'Le commissariat est requis',
+                            onChange: (e) => {
+                                setValue('commissariat', e.target.value);
+                            }
+                        })}
                         disabled={loadingCommissariats}
+                        className="form-control"
                     >
                         <option value="">Sélectionner un commissariat</option>
                         {commissariats.map((commissariat) => (
@@ -308,7 +318,13 @@ function DeclarationForm({ onSubmitSuccess }) {
                     {errors.photos && <span className="error-message">{errors.photos.message}</span>}
                 </div>
 
-                <button type="submit" className="btn primary-btn">Soumettre la déclaration</button>
+                <button 
+                    type="submit" 
+                    className="btn primary-btn"
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? 'Soumission en cours...' : 'Soumettre la déclaration'}
+                </button>
             </form>
         </div>
     );

@@ -85,6 +85,10 @@ const DeclarationSchema = mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    isDeletedByUser: {
+        type: Boolean,
+        default: false
     }
 });
 
