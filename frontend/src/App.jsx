@@ -9,6 +9,7 @@ import HomePage from './pages/HomePage';
 import AuthPage from './pages/AuthPage';
 import UserDashboard from './pages/UserDashboard';
 import CommissariatDashboard from './pages/CommissariatDashboard';
+import CommissariatDeclarations from './pages/CommissariatDeclarations';
 import AdminDashboard from './pages/AdminDashboard';
 import NotFoundPage from './pages/NotFoundPage';
 import NewDeclarationPage from './pages/NewDeclarationPage';
@@ -35,6 +36,7 @@ function App() {
 
           {/* Routes Protégées pour les Agents de Commissariat */}
           <Route path="/commissariat-dashboard" element={<ProtectedRoute allowedRoles={['commissariat_agent']}><CommissariatDashboard /></ProtectedRoute>} />
+          <Route path="/commissariat-dashboard/declarations" element={<ProtectedRoute allowedRoles={['commissariat_agent']}><CommissariatDeclarations /></ProtectedRoute>} />
           <Route path="/commissariat-dashboard/notifications" element={<ProtectedRoute allowedRoles={['commissariat_agent']}><NotificationsPage /></ProtectedRoute>} />
           {/* Ajoutez d'autres routes spécifiques au commissariat ici */}
 

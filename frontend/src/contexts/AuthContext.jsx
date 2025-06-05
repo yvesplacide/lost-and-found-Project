@@ -46,13 +46,12 @@ export const AuthProvider = ({ children }) => {
             setLoading(true);
             const data = await authService.login({ email, password });
             setUser(data);
-            toast.success('Connexion réussie !');
             setLoading(false);
-            return data; // Retourne les données utilisateur pour la redirection
+            return data;
         } catch (error) {
             setLoading(false);
             toast.error(error);
-            throw error; // Propager l'erreur pour la gestion dans le composant
+            throw error;
         }
     };
 
@@ -61,7 +60,6 @@ export const AuthProvider = ({ children }) => {
             setLoading(true);
             const data = await authService.register(userData);
             setUser(data);
-            toast.success('Inscription réussie !');
             setLoading(false);
             return data;
         } catch (error) {
@@ -74,7 +72,6 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         authService.logout();
         setUser(null);
-        toast.info('Vous avez été déconnecté.');
     };
 
     return (

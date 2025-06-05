@@ -1,29 +1,38 @@
-// frontend/src/pages/CommissariatDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
-import 'dayjs/locale/fr'; // Importer la locale française pour dayjs
-import '../styles/CommissariatDashboard.css'; // Import du CSS
+import 'dayjs/locale/fr';
 import { Link, useLocation } from 'react-router-dom';
 import { FaHome, FaList, FaChartBar, FaCog, FaBell } from 'react-icons/fa';
 import NotificationCounter from '../components/common/NotificationCounter';
 import ReceiptGenerator from '../components/declaration/ReceiptGenerator';
+import '../styles/CommissariatDashboard.css';
+
 dayjs.locale('fr');
 
-function CommissariatDashboard() {
+function CommissariatDeclarations() {
     const { user } = useAuth();
     const [declarations, setDeclarations] = useState([]);
-    const [rejectedDeclarations, setRejectedDeclarations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedDeclaration, setSelectedDeclaration] = useState(null);
     const [selectedPhoto, setSelectedPhoto] = useState(null);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectReason, setRejectReason] = useState('');
-    const [activeTab, setActiveTab] = useState('pending'); // 'pending' ou 'rejected'
+    const [filters, setFilters] = useState({
+        status: 'all',
+        dateRange: 'all',
+        type: 'all'
+    });
     const location = useLocation();
+
+    const statusOptions = [
+        'En attente',
+        'Traité',
+        'Refusée'
+    ];
 
     const fetchCommissariatDeclarations = async () => {
         if (!user) {
@@ -63,11 +72,9 @@ function CommissariatDashboard() {
             const response = await api.get(`/declarations/commissariat/${commissariatId}`);
             
             if (Array.isArray(response.data)) {
-                // Séparer les déclarations en attente et refusées
-                const pending = response.data.filter(decl => decl.status === 'En attente');
-                const rejected = response.data.filter(decl => decl.status === 'Refusée');
-                setDeclarations(pending);
-                setRejectedDeclarations(rejected);
+                // Ne garder que les déclarations traitées
+                const treated = response.data.filter(decl => decl.status === 'Traité');
+                setDeclarations(treated);
                 setError(null);
             } else {
                 setError('Format de données invalide reçu du serveur');
@@ -81,16 +88,44 @@ function CommissariatDashboard() {
         }
     };
 
-    // Charger les déclarations au montage du composant
     useEffect(() => {
-        console.log('User data in useEffect:', user);
         if (user) {
-            console.log('User role:', user.role);
-            console.log('User commissariat:', user.commissariat);
-            console.log('User commissariat type:', typeof user.commissariat);
             fetchCommissariatDeclarations();
         }
     }, [user]);
+
+    const handleStatusChange = async (declarationId, newStatus) => {
+        try {
+            // Si le nouveau statut est "Refusée", ouvrir la modal de refus
+            if (newStatus === 'Refusée') {
+                setSelectedDeclaration(declarations.find(decl => decl._id === declarationId));
+                setShowRejectModal(true);
+                return;
+            }
+
+            const updateData = {
+                status: newStatus,
+                agentAssigned: user._id
+            };
+
+            const response = await api.put(`/declarations/${declarationId}/status`, updateData);
+            
+            setDeclarations(prev =>
+                prev.map(decl =>
+                    decl._id === declarationId ? response.data : decl
+                )
+            );
+            
+            if (selectedDeclaration && selectedDeclaration._id === declarationId) {
+                setSelectedDeclaration(response.data);
+            }
+            
+            toast.success('Statut mis à jour avec succès');
+        } catch (err) {
+            console.error('Erreur lors de la mise à jour du statut:', err);
+            toast.error(err.response?.data?.message || 'Erreur lors de la mise à jour du statut');
+        }
+    };
 
     const openDetailsModal = (declaration) => {
         setSelectedDeclaration(declaration);
@@ -101,12 +136,43 @@ function CommissariatDashboard() {
     };
 
     const openPhotoModal = (photoUrl, e) => {
-        e.stopPropagation(); // Empêche l'ouverture de la modal de détails
+        e.stopPropagation();
         setSelectedPhoto(photoUrl);
     };
 
     const closePhotoModal = () => {
         setSelectedPhoto(null);
+    };
+
+    const handleFilterChange = (filterType, value) => {
+        setFilters(prev => ({
+            ...prev,
+            [filterType]: value
+        }));
+    };
+
+    const filterDeclarations = (declarations) => {
+        return declarations.filter(decl => {
+            if (filters.status !== 'all' && decl.status !== filters.status) return false;
+            if (filters.type !== 'all' && decl.declarationType !== filters.type) return false;
+            if (filters.dateRange !== 'all') {
+                const declarationDate = new Date(decl.declarationDate);
+                const now = new Date();
+                const diffDays = Math.floor((now - declarationDate) / (1000 * 60 * 60 * 24));
+                
+                switch (filters.dateRange) {
+                    case 'today':
+                        return diffDays === 0;
+                    case 'week':
+                        return diffDays <= 7;
+                    case 'month':
+                        return diffDays <= 30;
+                    default:
+                        return true;
+                }
+            }
+            return true;
+        });
     };
 
     const handleRejectDeclaration = async () => {
@@ -117,7 +183,7 @@ function CommissariatDashboard() {
 
         try {
             const updateData = {
-                status: 'Refusée', // Envoyer le statut "Refusée" au serveur
+                status: 'Refusée',
                 rejectReason: rejectReason.trim(),
                 agentAssigned: user._id,
                 updatedAt: new Date().toISOString()
@@ -128,10 +194,7 @@ function CommissariatDashboard() {
             const response = await api.put(`/declarations/${selectedDeclaration._id}/status`, updateData);
 
             if (response.data) {
-                // Mettre à jour les listes de déclarations
                 setDeclarations(prev => prev.filter(decl => decl._id !== selectedDeclaration._id));
-                setRejectedDeclarations(prev => [...prev, response.data]);
-                
                 setShowRejectModal(false);
                 setRejectReason('');
                 setSelectedDeclaration(null);
@@ -157,28 +220,44 @@ function CommissariatDashboard() {
                 <nav>
                     <ul className="sidebar-menu">
                         <li>
-                            <Link to="/commissariat-dashboard" className={location.pathname === '/commissariat-dashboard' ? 'active' : ''}>
+                            <Link 
+                                to="/commissariat-dashboard" 
+                                className={location.pathname === '/commissariat-dashboard' ? 'active' : ''}
+                            >
                                 <FaHome /> Tableau de bord
                             </Link>
                         </li>
                         <li>
-                            <Link to="/commissariat-dashboard/declarations" className={location.pathname === '/commissariat-dashboard/declarations' ? 'active' : ''}>
+                            <Link 
+                                to="/commissariat-dashboard/declarations" 
+                                className={location.pathname.includes('/commissariat-dashboard/declarations') ? 'active' : ''}
+                            >
                                 <FaList /> Déclarations traitées
                             </Link>
                         </li>
                         <li>
-                            <Link to="/commissariat-dashboard/statistics" className={location.pathname === '/commissariat-dashboard/statistics' ? 'active' : ''}>
+                            <Link 
+                                to="/commissariat-dashboard/statistics" 
+                                className={location.pathname === '/commissariat-dashboard/statistics' ? 'active' : ''}
+                            >
                                 <FaChartBar /> Statistiques
                             </Link>
                         </li>
                         <li>
-                            <Link to="/commissariat-dashboard/notifications" className={location.pathname === '/commissariat-dashboard/notifications' ? 'active' : ''} style={{ position: 'relative' }}>
+                            <Link 
+                                to="/commissariat-dashboard/notifications" 
+                                className={location.pathname === '/commissariat-dashboard/notifications' ? 'active' : ''} 
+                                style={{ position: 'relative' }}
+                            >
                                 <FaBell /> Notifications
                                 <NotificationCounter />
                             </Link>
                         </li>
                         <li>
-                            <Link to="/commissariat-dashboard/settings" className={location.pathname === '/commissariat-dashboard/settings' ? 'active' : ''}>
+                            <Link 
+                                to="/commissariat-dashboard/settings" 
+                                className={location.pathname === '/commissariat-dashboard/settings' ? 'active' : ''}
+                            >
                                 <FaCog /> Paramètres
                             </Link>
                         </li>
@@ -188,9 +267,9 @@ function CommissariatDashboard() {
 
             {/* Contenu principal */}
             <main className="dashboard-content">
-                <h2>Tableau de Bord du Commissariat</h2>
+                <h2>Déclarations Traitées</h2>
                 {user && (
-                    <div>
+                    <div className="welcome-section">
                         <p>Bienvenue, {user.firstName} !</p>
                         {user.commissariat && (
                             <p>Vous gérez les déclarations du commissariat de {
@@ -202,23 +281,34 @@ function CommissariatDashboard() {
                     </div>
                 )}
 
-                <div className="declaration-tabs">
-                    <button 
-                        className={`tab-button ${activeTab === 'pending' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('pending')}
-                    >
-                        Déclarations en attente
-                    </button>
-                    <button 
-                        className={`tab-button ${activeTab === 'rejected' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('rejected')}
-                    >
-                        Déclarations refusées
-                    </button>
+                {/* Filtres */}
+                <div className="filters-section">
+                    <div className="filter-group">
+                        <label>Type:</label>
+                        <select 
+                            value={filters.type} 
+                            onChange={(e) => handleFilterChange('type', e.target.value)}
+                        >
+                            <option value="all">Tous les types</option>
+                            <option value="objet">Perte d'objet</option>
+                            <option value="personne">Disparition de personne</option>
+                        </select>
+                    </div>
+                    <div className="filter-group">
+                        <label>Période:</label>
+                        <select 
+                            value={filters.dateRange} 
+                            onChange={(e) => handleFilterChange('dateRange', e.target.value)}
+                        >
+                            <option value="all">Toutes les périodes</option>
+                            <option value="today">Aujourd'hui</option>
+                            <option value="week">Cette semaine</option>
+                            <option value="month">Ce mois</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div className="declaration-list-container">
-                    <h3>{activeTab === 'pending' ? 'Déclarations en Attente' : 'Déclarations Refusées'}</h3>
                     {loading ? (
                         <div className="loading-container">
                             <div className="loading-spinner"></div>
@@ -231,55 +321,47 @@ function CommissariatDashboard() {
                                 Réessayer
                             </button>
                         </div>
-                    ) : (activeTab === 'pending' ? declarations : rejectedDeclarations).length === 0 ? (
-                        <p>Aucune déclaration {activeTab === 'pending' ? 'en attente' : 'refusée'} pour votre commissariat pour l'instant.</p>
+                    ) : declarations.length === 0 ? (
+                        <p>Aucune déclaration traitée pour votre commissariat pour l'instant.</p>
                     ) : (
-                        <div className="declaration-cards">
-                            {(activeTab === 'pending' ? declarations : rejectedDeclarations).map((declaration) => (
-                                <div 
-                                    key={declaration._id} 
-                                    className="declaration-card"
-                                    onClick={() => openDetailsModal(declaration)}
-                                    style={{ cursor: 'pointer' }}
-                                    title="Cliquez ici pour voir les détails de la déclaration"
-                                >
-                                    <div className="declaration-info">
-                                        <h4>Déclaration de {declaration.declarationType === 'objet' ? 'perte d\'objet' : 'disparition de personne'}</h4>
-                                        <p><strong>N° de déclaration:</strong> {declaration._id}</p>
-                                        <p><strong>Statut:</strong> <span className={`status-${declaration.status.toLowerCase().replace(/\s/g, '-')}`}>{declaration.status}</span></p>
-                                        {declaration.status === 'Refusée' && declaration.rejectReason && (
-                                            <p><strong>Motif du refus:</strong> {declaration.rejectReason}</p>
-                                        )}
-                                        <p><strong>Déclarant:</strong> {declaration.user ? `${declaration.user.firstName} ${declaration.user.lastName}` : 'Inconnu'}</p>
-                                        {declaration.declarationType === 'objet' && (
-                                            <>
-                                                <p><strong>Catégorie:</strong> {declaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
-                                                <p><strong>Nom:</strong> {declaration.objectDetails?.objectName || 'Non spécifié'}</p>
-                                                <p><strong>Marque:</strong> {declaration.objectDetails?.objectBrand || 'Non spécifiée'}</p>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    {declaration.photos && declaration.photos.length > 0 ? (
-                                        <div className="declaration-photos" onClick={e => e.stopPropagation()}>
-                                            {declaration.photos.map((photo, index) => (
-                                                <img 
-                                                    key={index} 
-                                                    src={`http://localhost:5000/uploads/${photo}`} 
-                                                    alt={`Photo ${index + 1}`} 
-                                                    className="declaration-photo-thumbnail"
-                                                    onClick={(e) => openPhotoModal(`http://localhost:5000/uploads/${photo}`, e)}
-                                                    title="Cliquez pour voir la photo en grand"
-                                                />
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="no-photos">
-                                            <p>Aucune photo disponible</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+                        <div className="declarations-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>N° Déclaration</th>
+                                        <th>Type</th>
+                                        <th>Déclarant</th>
+                                        <th>Date</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filterDeclarations(declarations).map((declaration) => (
+                                        <tr key={declaration._id}>
+                                            <td>{declaration._id}</td>
+                                            <td>{declaration.declarationType === 'objet' ? 'Perte d\'objet' : 'Disparition de personne'}</td>
+                                            <td>{declaration.user ? `${declaration.user.firstName} ${declaration.user.lastName}` : 'Inconnu'}</td>
+                                            <td>{dayjs(declaration.declarationDate).format('DD/MM/YYYY HH:mm')}</td>
+                                            <td>
+                                                <span className={`status-badge status-${declaration.status.toLowerCase().replace(/\s/g, '-')}`}>
+                                                    {declaration.status}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className="action-buttons">
+                                                    <button 
+                                                        className="btn details-btn"
+                                                        onClick={() => openDetailsModal(declaration)}
+                                                    >
+                                                        Détails
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     )}
                 </div>
@@ -302,9 +384,6 @@ function CommissariatDashboard() {
                                     </>
                                 )}
                                 <p><strong>Statut:</strong> {selectedDeclaration.status}</p>
-                                {selectedDeclaration.status === 'Refusée' && selectedDeclaration.rejectReason && (
-                                    <p><strong>Motif du refus:</strong> {selectedDeclaration.rejectReason}</p>
-                                )}
                                 <p><strong>Date:</strong> {dayjs(selectedDeclaration.declarationDate).format('DD MMMM YYYY à HH:mm')}</p>
                                 <p><strong>Lieu:</strong> {selectedDeclaration.location}</p>
                                 <p><strong>Description:</strong> {selectedDeclaration.description}</p>
@@ -371,42 +450,33 @@ function CommissariatDashboard() {
                                         <ReceiptGenerator 
                                             declaration={selectedDeclaration} 
                                             onReceiptGenerated={(receiptNumber) => {
-                                                const updatedDeclaration = {
-                                                    ...selectedDeclaration,
+                                                setDeclarations(prevDeclarations =>
+                                                    prevDeclarations.map(decl =>
+                                                        decl._id === selectedDeclaration._id
+                                                            ? { ...decl, receiptNumber, receiptDate: new Date().toISOString() }
+                                                            : decl
+                                                    )
+                                                );
+                                                setSelectedDeclaration(prev => ({
+                                                    ...prev,
                                                     receiptNumber,
-                                                    receiptDate: new Date().toISOString(),
-                                                    status: 'Traité'
-                                                };
-
-                                                setDeclarations(prev => prev.filter(decl => decl._id !== selectedDeclaration._id));
-                                                setSelectedDeclaration(updatedDeclaration);
-
-                                                api.put(`/declarations/${selectedDeclaration._id}/status`, {
-                                                    status: 'Traité',
-                                                    agentAssigned: user._id
-                                                }).catch(err => {
-                                                    console.error('Erreur lors de la mise à jour du statut:', err);
-                                                    toast.error('Erreur lors de la mise à jour du statut');
-                                                });
-
-                                                toast.success('Récépissé généré avec succès');
+                                                    receiptDate: new Date().toISOString()
+                                                }));
                                             }}
                                         />
                                     </div>
                                 )}
                             </div>
+                        </div>
+                    </div>
+                )}
 
-                            {/* Bouton de refus pour les déclarations en attente */}
-                            {selectedDeclaration.status === 'En attente' && (
-                                <div className="action-buttons">
-                                    <button 
-                                        className="btn reject-btn"
-                                        onClick={() => setShowRejectModal(true)}
-                                    >
-                                        Refuser la déclaration
-                                    </button>
-                                </div>
-                            )}
+                {/* Modal pour les photos en grand */}
+                {selectedPhoto && (
+                    <div className="modal-overlay" onClick={closePhotoModal}>
+                        <div className="photo-modal-content" onClick={e => e.stopPropagation()}>
+                            <button className="modal-close-btn" onClick={closePhotoModal}>&times;</button>
+                            <img src={selectedPhoto} alt="Photo en grand" className="full-size-photo" />
                         </div>
                     </div>
                 )}
@@ -442,19 +512,9 @@ function CommissariatDashboard() {
                         </div>
                     </div>
                 )}
-
-                {/* Modal pour les photos en grand */}
-                {selectedPhoto && (
-                    <div className="modal-overlay" onClick={closePhotoModal}>
-                        <div className="photo-modal-content" onClick={e => e.stopPropagation()}>
-                            <button className="modal-close-btn" onClick={closePhotoModal}>&times;</button>
-                            <img src={selectedPhoto} alt="Photo en grand" className="full-size-photo" />
-                        </div>
-                    </div>
-                )}
             </main>
         </div>
     );
 }
 
-export default CommissariatDashboard;
+export default CommissariatDeclarations; 

@@ -16,7 +16,6 @@ function AuthPage() {
     // Redirige l'utilisateur s'il est déjà connecté
     useEffect(() => {
         if (user) {
-            // Redirection basée sur le rôle de l'utilisateur
             if (user.role === 'admin') {
                 navigate('/admin-dashboard');
             } else if (user.role === 'commissariat_agent') {
@@ -24,7 +23,6 @@ function AuthPage() {
             } else {
                 navigate('/');
             }
-            toast.info(`Vous êtes déjà connecté en tant que ${user.role}.`);
         }
     }, [user, navigate]);
 
@@ -32,18 +30,15 @@ function AuthPage() {
     const onSubmit = async (data) => {
         try {
             if (isRegistering) {
-                // Formater la date de naissance en format ISO
                 const formattedData = {
                     ...data,
                     dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : null
                 };
                 
-                // Logique d'inscription
                 const registeredUser = await authRegister(formattedData);
                 if (registeredUser) {
-                    toast.success(`Bienvenue, ${registeredUser.firstName} !`);
-                    reset(); // Réinitialise le formulaire après succès
-                    // Rediriger l'utilisateur après l'inscription/connexion
+                    toast.success('Inscription réussie');
+                    reset();
                     if (registeredUser.role === 'admin') {
                         navigate('/admin-dashboard');
                     } else if (registeredUser.role === 'commissariat_agent') {
@@ -53,12 +48,10 @@ function AuthPage() {
                     }
                 }
             } else {
-                // Logique de connexion
                 const loggedInUser = await login(data.email, data.password);
                 if (loggedInUser) {
-                    toast.success(`Ravi de vous revoir, ${loggedInUser.firstName} !`);
-                    reset(); // Réinitialise le formulaire après succès
-                    // Rediriger l'utilisateur après l'inscription/connexion
+                    toast.success('Connexion réussie');
+                    reset();
                     if (loggedInUser.role === 'admin') {
                         navigate('/admin-dashboard');
                     } else if (loggedInUser.role === 'commissariat_agent') {
@@ -69,8 +62,7 @@ function AuthPage() {
                 }
             }
         } catch (error) {
-            // Les messages d'erreur sont déjà gérés par `toast.error` dans `AuthContext`
-            console.error("Auth submission error:", error); // Pour le débogage
+            console.error("Auth submission error:", error);
         }
     };
 

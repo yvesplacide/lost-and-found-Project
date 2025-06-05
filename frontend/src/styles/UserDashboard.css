@@ -274,6 +274,31 @@ body {
     font-weight: 600;
 }
 
+.status-refusée {
+    background-color: #dc3545;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.reject-reason {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 4px;
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+
+.reject-reason strong {
+    color: #dc3545;
+    font-weight: 600;
+}
+
 .details-section {
     background: var(--light-bg);
     padding: 1rem;

@@ -9,7 +9,7 @@ import html2canvas from 'html2canvas';
 dayjs.locale('fr');
 
 // Fonction pour générer le contenu HTML du récépissé
-const generateReceiptContent = (declaration, receiptNumber) => {
+export const generateReceiptContent = (declaration, receiptNumber) => {
     // Vérifier si les données de l'utilisateur existent
     const user = declaration.user || {};
     
@@ -34,8 +34,8 @@ const generateReceiptContent = (declaration, receiptNumber) => {
 
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 20px;">
             <h1 style="font-size: 24px; margin-bottom: 10px;">RÉCÉPISSÉ DE DÉCLARATION DE PERTE</h1>
-            <p style="font-size: 16px;">N° : ${receiptNumber}</p>
-            <p style="font-size: 16px;">Date : ${dayjs().format('DD MMMM YYYY')}</p>
+            <p style="font-size: 16px;">N° : ${receiptNumber || declaration.receiptNumber}</p>
+            <p style="font-size: 16px;">Date : ${dayjs(declaration.receiptDate || new Date()).format('DD MMMM YYYY')}</p>
         </div>
         
         <div style="margin-bottom: 30px;">
@@ -68,7 +68,7 @@ const generateReceiptContent = (declaration, receiptNumber) => {
 
         <div style="margin-top: 50px;">
             <p style="font-size: 14px; margin: 5px 0;">Fait à : ${declaration.commissariat?.name || 'Non assigné'}</p>
-            <p style="font-size: 14px; margin: 5px 0;">Le : ${dayjs().format('DD MMMM YYYY')}</p>
+            <p style="font-size: 14px; margin: 5px 0;">Le : ${dayjs(declaration.receiptDate || new Date()).format('DD MMMM YYYY')}</p>
             
             <div style="margin-top: 50px; display: flex; justify-content: space-between;">
                 <div style="width: 45%;">
@@ -77,7 +77,7 @@ const generateReceiptContent = (declaration, receiptNumber) => {
                 </div>
                 <div style="width: 45%;">
                     <p style="font-size: 14px; margin: 5px 0;">L'Officier de Police Judiciaire</p>
-                    <p style="font-size: 14px; margin: 5px 0;">Nom : ${declaration.agentAssigned?.firstName} ${declaration.agentAssigned?.lastName || 'Non assigné'}</p>
+                    <p style="font-size: 14px; margin: 5px 0;">Nom : ${declaration.agentAssigned && declaration.agentAssigned.firstName && declaration.agentAssigned.lastName ? `${declaration.agentAssigned.firstName} ${declaration.agentAssigned.lastName}` : 'Non assigné'}</p>
                     <div style="border-top: 1px solid #000; width: 200px; margin-top: 50px;"></div>
                     <p style="font-size: 14px; margin: 5px 0;">Signature et cachet du commissariat</p>
                 </div>
@@ -92,6 +92,7 @@ function ReceiptGenerator({ declaration, onReceiptGenerated }) {
 
     // Ajouter des logs pour déboguer
     console.log('Déclaration reçue:', declaration);
+    console.log('Agent assigné:', declaration.agentAssigned);
     console.log('Données utilisateur:', declaration.user);
 
     // Vérifier si les données utilisateur sont disponibles
@@ -102,29 +103,29 @@ function ReceiptGenerator({ declaration, onReceiptGenerated }) {
         try {
             setIsGenerating(true);
             
-            // Générer un numéro de récépissé si non existant
             if (!receiptNumber) {
                 const newReceiptNumber = `REC-${dayjs().format('YYYYMMDD')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
                 setReceiptNumber(newReceiptNumber);
                 
-                // Mettre à jour la déclaration avec le numéro de récépissé
                 try {
                     const response = await api.put(`/declarations/${declaration._id}`, {
                         receiptNumber: newReceiptNumber,
-                        receiptDate: new Date().toISOString()
+                        receiptDate: new Date().toISOString(),
+                        agentAssigned: declaration.agentAssigned?._id,
+                        status: 'Traité'
                     });
                     
                     if (response.data) {
                         console.log('Déclaration mise à jour:', response.data);
-                        console.log('Données utilisateur après mise à jour:', response.data.user);
-                        toast.success('Récépissé généré avec succès !');
+                        console.log('Agent assigné après mise à jour:', response.data.agentAssigned);
+                        toast.success('Récépissé généré');
                         if (onReceiptGenerated) {
                             onReceiptGenerated(newReceiptNumber);
                         }
                     }
                 } catch (error) {
                     console.error('Erreur lors de la mise à jour du récépissé:', error);
-                    toast.error('Erreur lors de la mise à jour du récépissé');
+                    toast.error('Erreur lors de la génération du récépissé');
                     return;
                 }
             }

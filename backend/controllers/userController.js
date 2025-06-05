@@ -31,62 +31,96 @@ const getUserById = asyncHandler(async (req, res) => {
 // @route   POST /api/users
 // @access  Private (Admin)
 const createUser = asyncHandler(async (req, res) => {
-    const { firstName, lastName, email, password, phone, address, profession, role, commissariatId } = req.body;
+    try {
+        console.log('Début de la création d\'utilisateur');
+        console.log('Données reçues:', req.body);
+        
+        const { firstName, lastName, email, password, phone, address, profession, role, commissariatId, dateOfBirth, birthPlace } = req.body;
 
-    // Vérifier si l'utilisateur existe déjà
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-        res.status(400);
-        throw new Error('Un utilisateur avec cet email existe déjà');
-    }
-
-    // Valider le rôle
-    if (role && !Object.values(ROLES).includes(role)) {
-        res.status(400);
-        throw new Error('Rôle invalide');
-    }
-
-    // Vérifier le commissariat si c'est un agent
-    let commissariat = null;
-    if (role === ROLES.COMMISSARIAT_AGENT) {
-        if (!commissariatId) {
+        // Vérifier si l'utilisateur existe déjà
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            console.log('Utilisateur existe déjà avec cet email:', email);
             res.status(400);
-            throw new Error('L\'ID du commissariat est requis pour un agent de commissariat');
+            throw new Error('Un utilisateur avec cet email existe déjà');
         }
-        commissariat = await Commissariat.findById(commissariatId);
-        if (!commissariat) {
-            res.status(404);
-            throw new Error('Commissariat non trouvé');
+
+        // Valider le rôle
+        if (role && !Object.values(ROLES).includes(role)) {
+            console.log('Rôle invalide:', role);
+            res.status(400);
+            throw new Error('Rôle invalide');
         }
-    }
 
-    const user = await User.create({
-        firstName,
-        lastName,
-        email,
-        password,
-        phone,
-        address,
-        profession,
-        role: role || ROLES.USER,
-        commissariat: role === ROLES.COMMISSARIAT_AGENT ? commissariatId : undefined
-    });
+        // Vérifier le commissariat si c'est un agent
+        let commissariat = null;
+        if (role === ROLES.COMMISSARIAT_AGENT) {
+            if (!commissariatId) {
+                console.log('ID du commissariat manquant pour un agent');
+                res.status(400);
+                throw new Error('L\'ID du commissariat est requis pour un agent de commissariat');
+            }
+            commissariat = await Commissariat.findById(commissariatId);
+            if (!commissariat) {
+                console.log('Commissariat non trouvé avec ID:', commissariatId);
+                res.status(404);
+                throw new Error('Commissariat non trouvé');
+            }
+        }
 
-    if (user) {
-        res.status(201).json({
-            _id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            phone: user.phone,
-            address: user.address,
-            profession: user.profession,
-            role: user.role,
-            commissariat: user.commissariat
+        console.log('Création de l\'utilisateur avec les données:', {
+            firstName,
+            lastName,
+            email,
+            phone,
+            address,
+            profession,
+            role,
+            commissariat: role === ROLES.COMMISSARIAT_AGENT ? commissariatId : undefined,
+            dateOfBirth,
+            birthPlace
         });
-    } else {
-        res.status(400);
-        throw new Error('Données utilisateur invalides');
+
+        const user = await User.create({
+            firstName,
+            lastName,
+            email,
+            password,
+            phone,
+            address,
+            profession,
+            role: role || ROLES.USER,
+            commissariat: role === ROLES.COMMISSARIAT_AGENT ? commissariatId : undefined,
+            dateOfBirth,
+            birthPlace
+        });
+
+        if (user) {
+            console.log('Utilisateur créé avec succès:', user._id);
+            res.status(201).json({
+                _id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                phone: user.phone,
+                address: user.address,
+                profession: user.profession,
+                role: user.role,
+                commissariat: user.commissariat,
+                dateOfBirth: user.dateOfBirth,
+                birthPlace: user.birthPlace
+            });
+        } else {
+            console.log('Échec de la création de l\'utilisateur');
+            res.status(400);
+            throw new Error('Données utilisateur invalides');
+        }
+    } catch (error) {
+        console.error('Erreur lors de la création de l\'utilisateur:', error);
+        res.status(500).json({
+            message: error.message || 'Erreur lors de la création de l\'utilisateur',
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 });
 

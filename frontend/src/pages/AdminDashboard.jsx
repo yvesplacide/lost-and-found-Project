@@ -32,7 +32,11 @@ function AdminDashboard() {
         email: '',
         password: '',
         phone: '',
-        commissariatId: ''
+        commissariatId: '',
+        profession: '',
+        address: '',
+        dateOfBirth: '',
+        birthPlace: ''
     });
 
     // Charger les données
@@ -111,10 +115,22 @@ function AdminDashboard() {
     const handleCreateAgent = async (e) => {
         e.preventDefault();
         try {
-            const response = await api.post('/users', {
+            if (!newAgent.commissariatId) {
+                toast.error('Veuillez sélectionner un commissariat');
+                return;
+            }
+
+            // Formater la date de naissance en format ISO
+            const formattedData = {
                 ...newAgent,
-                role: 'commissariat_agent'
-            });
+                dateOfBirth: newAgent.dateOfBirth ? new Date(newAgent.dateOfBirth).toISOString() : null,
+                role: 'commissariat_agent',
+                commissariat: newAgent.commissariatId
+            };
+
+            console.log('Données envoyées:', formattedData);
+
+            const response = await api.post('/users', formattedData);
             setAgents([...agents, response.data]);
             setNewAgent({
                 firstName: '',
@@ -122,7 +138,11 @@ function AdminDashboard() {
                 email: '',
                 password: '',
                 phone: '',
-                commissariatId: ''
+                commissariatId: '',
+                profession: '',
+                address: '',
+                dateOfBirth: '',
+                birthPlace: ''
             });
             toast.success('Agent créé avec succès');
         } catch (err) {
@@ -360,6 +380,43 @@ function AdminDashboard() {
                                     type="tel"
                                     value={newAgent.phone}
                                     onChange={(e) => setNewAgent({...newAgent, phone: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Profession</label>
+                                <input
+                                    type="text"
+                                    value={newAgent.profession}
+                                    onChange={(e) => setNewAgent({...newAgent, profession: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Adresse</label>
+                                <input
+                                    type="text"
+                                    value={newAgent.address}
+                                    onChange={(e) => setNewAgent({...newAgent, address: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Date de naissance</label>
+                                <input
+                                    type="date"
+                                    value={newAgent.dateOfBirth}
+                                    onChange={(e) => setNewAgent({...newAgent, dateOfBirth: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Lieu de naissance</label>
+                                <input
+                                    type="text"
+                                    value={newAgent.birthPlace}
+                                    onChange={(e) => setNewAgent({...newAgent, birthPlace: e.target.value})}
+                                    required
                                 />
                             </div>
                             <div className="form-group">

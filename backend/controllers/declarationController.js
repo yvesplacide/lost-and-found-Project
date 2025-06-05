@@ -257,28 +257,79 @@ export const getDeclarationsByCommissariat = asyncHandler(async (req, res) => {
 // @route   PUT /api/declarations/:id/status
 // @access  Private/Commissariat_Agent/Admin
 export const updateDeclarationStatus = asyncHandler(async (req, res) => {
-    const { status } = req.body;
-    const declaration = await Declaration.findById(req.params.id);
+    try {
+        const { status, rejectReason } = req.body;
+        console.log('Mise à jour du statut - Données reçues:', { declarationId: req.params.id, status, rejectReason, userId: req.user._id });
 
-    if (!declaration) {
-        res.status(404);
-        throw new Error('Déclaration non trouvée');
+        // Vérifier si le statut est valide
+        const validStatuses = ['En attente', 'Traité', 'Refusée'];
+        if (!validStatuses.includes(status)) {
+            console.error('Statut invalide:', status);
+            res.status(400);
+            throw new Error(`Statut invalide. Les statuts valides sont: ${validStatuses.join(', ')}`);
+        }
+
+        // Vérifier si un motif de refus est fourni lorsque le statut est "Refusée"
+        if (status === 'Refusée' && !rejectReason) {
+            console.error('Motif de refus manquant');
+            res.status(400);
+            throw new Error('Un motif de refus est requis pour refuser une déclaration');
+        }
+
+        const declaration = await Declaration.findById(req.params.id);
+        if (!declaration) {
+            console.error('Déclaration non trouvée:', req.params.id);
+            res.status(404);
+            throw new Error('Déclaration non trouvée');
+        }
+
+        // Vérifier si l'utilisateur a le droit de modifier cette déclaration
+        if (req.user.role !== 'admin' && req.user.role !== 'commissariat_agent') {
+            console.error('Accès non autorisé:', req.user.role);
+            res.status(403);
+            throw new Error('Non autorisé à modifier le statut de cette déclaration');
+        }
+
+        // Mettre à jour le statut et assigner l'agent qui effectue le changement
+        declaration.status = status;
+        if (status === 'Refusée') {
+            declaration.rejectReason = rejectReason;
+        }
+        declaration.processedAt = Date.now();
+        declaration.agentAssigned = req.user._id;
+        
+        console.log('Mise à jour de la déclaration:', {
+            id: declaration._id,
+            newStatus: status,
+            rejectReason: rejectReason,
+            agentAssigned: req.user._id
+        });
+
+        await declaration.save();
+
+        // Récupérer la déclaration mise à jour avec les données populées
+        const updatedDeclaration = await Declaration.findById(declaration._id)
+            .populate({
+                path: 'user',
+                select: 'firstName lastName email phone address profession dateOfBirth birthPlace'
+            })
+            .populate('commissariat', 'name city')
+            .populate({
+                path: 'agentAssigned',
+                select: 'firstName lastName'
+            });
+
+        console.log('Déclaration mise à jour avec succès:', {
+            id: updatedDeclaration._id,
+            status: updatedDeclaration.status,
+            rejectReason: updatedDeclaration.rejectReason,
+            agentAssigned: updatedDeclaration.agentAssigned
+        });
+
+        res.json(updatedDeclaration);
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du statut:', error);
+        res.status(error.statusCode || 500);
+        throw new Error(error.message || 'Erreur lors de la mise à jour du statut');
     }
-
-    // Mettre à jour le statut et assigner l'agent qui effectue le changement
-    declaration.status = status;
-    declaration.processedAt = Date.now();
-    declaration.agentAssigned = req.user._id; // Assigner l'agent qui effectue le changement
-    await declaration.save();
-
-    // Récupérer la déclaration mise à jour avec les données populées
-    const updatedDeclaration = await Declaration.findById(declaration._id)
-        .populate({
-            path: 'user',
-            select: 'firstName lastName email phone address profession dateOfBirth birthPlace'
-        })
-        .populate('commissariat', 'name city')
-        .populate('agentAssigned', 'firstName lastName');
-
-    res.json(updatedDeclaration);
 });

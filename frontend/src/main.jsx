@@ -15,7 +15,17 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider> {/* <-- ENVELOPPE L'APPLICATION AVEC LE CONTEXTE D'AUTH */}
         <App />
       </AuthProvider>
-      <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+      <ToastContainer 
+        position="bottom-right" 
+        autoClose={1500} 
+        hideProgressBar={false} 
+        newestOnTop={false} 
+        closeOnClick 
+        rtl={false} 
+        pauseOnFocusLoss 
+        draggable 
+        pauseOnHover 
+      />
     </BrowserRouter>
   </React.StrictMode>,
 );

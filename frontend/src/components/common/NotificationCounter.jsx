@@ -9,42 +9,61 @@ function NotificationCounter() {
     useEffect(() => {
         const fetchNotificationCount = async () => {
             try {
-                if (!user || !user.commissariat) {
-                    console.log('User ou commissariat non disponible:', { user });
+                if (!user) {
                     return;
                 }
 
-                const commissariatId = typeof user.commissariat === 'object' 
-                    ? user.commissariat._id 
-                    : user.commissariat;
+                // Vérifier si l'utilisateur est un agent de commissariat
+                if (user.role !== 'commissariat_agent') {
+                    return;
+                }
 
-                console.log('Fetching notifications for commissariat:', commissariatId);
+                // Récupérer l'ID du commissariat
+                let commissariatId;
+                if (user.commissariat) {
+                    commissariatId = typeof user.commissariat === 'object' 
+                        ? user.commissariat._id 
+                        : user.commissariat;
+                } else {
+                    // Si le commissariat n'est pas dans l'objet user, essayer de le récupérer
+                    const userResponse = await api.get('/auth/me');
+                    if (userResponse.data.commissariat) {
+                        commissariatId = typeof userResponse.data.commissariat === 'object' 
+                            ? userResponse.data.commissariat._id 
+                            : userResponse.data.commissariat;
+                    } else {
+                        return;
+                    }
+                }
+
+                if (!commissariatId) {
+                    return;
+                }
+
                 const response = await api.get(`/declarations/commissariat/${commissariatId}`);
-                console.log('Réponse complète des déclarations:', response.data);
-                
-                // Compter les déclarations avec le statut "En attente"
                 const newDeclarationsCount = response.data.filter(decl => decl.status === 'En attente').length;
-                console.log('Nombre de déclarations en attente:', newDeclarationsCount);
                 setCount(newDeclarationsCount);
             } catch (error) {
-                console.error('Erreur détaillée lors du chargement du nombre de notifications:', error);
-                console.error('Response data:', error.response?.data);
-                console.error('Response status:', error.response?.status);
+                console.error('Erreur lors du chargement du nombre de notifications:', error);
             }
         };
 
         fetchNotificationCount();
-        // Mettre à jour le compteur toutes les 30 secondes
         const interval = setInterval(fetchNotificationCount, 30000);
 
         return () => clearInterval(interval);
     }, [user]);
 
-    return (
+    // Ne pas afficher le compteur si l'utilisateur n'est pas un agent de commissariat
+    if (!user || user.role !== 'commissariat_agent') {
+        return null;
+    }
+
+    return count > 0 ? (
         <div className="notification-counter">
             {count}
         </div>
-    );
+    ) : null;
 }
 
 export default NotificationCounter; 

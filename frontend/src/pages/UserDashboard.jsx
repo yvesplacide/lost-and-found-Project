@@ -9,6 +9,7 @@ import DeclarationForm from '../components/declaration/DeclarationForm';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import '../styles/UserDashboard.css';
+import { generateReceiptContent } from '../components/declaration/ReceiptGenerator';
 
 dayjs.locale('fr');
 
@@ -75,6 +76,48 @@ function UserDashboard() {
         await fetchUserDeclarations();
         setShowDeclarationForm(false);
         toast.success('Déclaration créée avec succès !');
+    };
+
+    const handleDownloadReceipt = async (declaration) => {
+        try {
+            // Générer le PDF du récépissé
+            const receiptElement = document.createElement('div');
+            receiptElement.style.width = '210mm';
+            receiptElement.style.padding = '20mm';
+            receiptElement.style.backgroundColor = 'white';
+            receiptElement.style.fontFamily = 'Arial, sans-serif';
+            receiptElement.style.position = 'absolute';
+            receiptElement.style.left = '-9999px';
+            receiptElement.innerHTML = generateReceiptContent(declaration);
+
+            document.body.appendChild(receiptElement);
+
+            const canvas = await html2canvas(receiptElement, {
+                scale: 2,
+                useCORS: true,
+                logging: false
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+            const imgX = (pdfWidth - imgWidth * ratio) / 2;
+            const imgY = 0;
+
+            pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+            pdf.save(`recepisse_officiel_${declaration.receiptNumber}.pdf`);
+
+            document.body.removeChild(receiptElement);
+
+            toast.success('Récépissé téléchargé');
+        } catch (error) {
+            console.error('Erreur lors du téléchargement du récépissé:', error);
+            toast.error('Erreur lors du téléchargement du récépissé');
+        }
     };
 
     if (loading) {
@@ -147,6 +190,11 @@ function UserDashboard() {
                                                 {declaration.status}
                                             </span>
                                         </p>
+                                        {declaration.status === 'Refusée' && declaration.rejectReason && (
+                                            <div className="reject-reason">
+                                                <strong>Motif du refus :</strong> {declaration.rejectReason}
+                                            </div>
+                                        )}
                                         <p><strong>Date:</strong> {dayjs(declaration.declarationDate).format('DD MMMM YYYY à HH:mm')}</p>
                                         <p><strong>Lieu:</strong> {declaration.location}</p>
                                         <p><strong>Commissariat:</strong> {declaration.commissariat?.name || 'Non assigné'}</p>
@@ -183,6 +231,11 @@ function UserDashboard() {
                         <div className="declaration-info">
                             <p><strong>Type:</strong> {selectedDeclaration.declarationType === 'objet' ? 'Perte d\'objet' : 'Disparition de personne'}</p>
                             <p><strong>Statut:</strong> {selectedDeclaration.status}</p>
+                            {selectedDeclaration.status === 'Refusée' && selectedDeclaration.rejectReason && (
+                                <div className="reject-reason">
+                                    <strong>Motif du refus :</strong> {selectedDeclaration.rejectReason}
+                                </div>
+                            )}
                             <p><strong>Date:</strong> {dayjs(selectedDeclaration.declarationDate).format('DD MMMM YYYY à HH:mm')}</p>
                             <p><strong>Lieu:</strong> {selectedDeclaration.location}</p>
                             <p><strong>Description:</strong> {selectedDeclaration.description}</p>
@@ -270,108 +323,7 @@ function UserDashboard() {
                                     <p>Récépissé N° {selectedDeclaration.receiptNumber}</p>
                                     <p>Établi le {dayjs(selectedDeclaration.receiptDate).format('DD MMMM YYYY')}</p>
                                     <button 
-                                        onClick={async () => {
-                                            try {
-                                                // Créer un élément temporaire pour le contenu du récépissé
-                                                const receiptElement = document.createElement('div');
-                                                receiptElement.style.width = '210mm';
-                                                receiptElement.style.padding = '20mm';
-                                                receiptElement.style.backgroundColor = 'white';
-                                                receiptElement.style.fontFamily = 'Arial, sans-serif';
-                                                receiptElement.style.position = 'absolute';
-                                                receiptElement.style.left = '-9999px';
-                                                receiptElement.innerHTML = `
-                                                    <div style="text-align: center; margin-bottom: 30px;">
-                                                        <h1 style="font-size: 24px; margin-bottom: 10px;">RÉPUBLIQUE DE CÔTE D'IVOIRE</h1>
-                                                        <h2 style="font-size: 20px; margin-bottom: 10px;">Union – Discipline – Travail</h2>
-                                                        <h3 style="font-size: 18px; margin-bottom: 10px;">MINISTÈRE DE L'INTÉRIEUR ET DE LA SÉCURITÉ</h3>
-                                                        <h4 style="font-size: 16px; margin-bottom: 10px;">Direction Générale de la Police Nationale</h4>
-                                                        <h4 style="font-size: 16px; margin-bottom: 10px;">Commissariat de Police de ${selectedDeclaration.commissariat?.name || 'Non assigné'}</h4>
-                                                    </div>
-
-                                                    <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 20px;">
-                                                        <h1 style="font-size: 24px; margin-bottom: 10px;">RÉCÉPISSÉ DE DÉCLARATION DE PERTE</h1>
-                                                        <p style="font-size: 16px;">N° : ${selectedDeclaration.receiptNumber}</p>
-                                                        <p style="font-size: 16px;">Date : ${dayjs(selectedDeclaration.receiptDate).format('DD MMMM YYYY')}</p>
-                                                    </div>
-                                                    
-                                                    <div style="margin-bottom: 30px;">
-                                                        <h2 style="font-size: 20px; margin-bottom: 15px;">IDENTITÉ DU DÉCLARANT</h2>
-                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Nom et prénoms :</strong> ${selectedDeclaration.user?.lastName || ''} ${selectedDeclaration.user?.firstName || ''}</p>
-                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Date de naissance :</strong> ${selectedDeclaration.user?.dateOfBirth ? dayjs(selectedDeclaration.user.dateOfBirth).format('DD/MM/YYYY') : 'Non spécifiée'}</p>
-                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Lieu de naissance :</strong> ${selectedDeclaration.user?.birthPlace || 'Non spécifié'}</p>
-                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Profession :</strong> ${selectedDeclaration.user?.profession || 'Non spécifiée'}</p>
-                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Adresse :</strong> ${selectedDeclaration.user?.address || 'Non spécifiée'}</p>
-                                                        <p style="font-size: 14px; margin: 5px 0;"><strong>Contact :</strong> ${selectedDeclaration.user?.phone || 'Non spécifié'}</p>
-                                                    </div>
-
-                                                    <div style="margin-bottom: 30px;">
-                                                        <h2 style="font-size: 20px; margin-bottom: 15px;">OBJET DE LA DÉCLARATION</h2>
-                                                        <p style="font-size: 14px; margin: 5px 0;">Le susnommé a déclaré en ce jour la perte de l'objet suivant :</p>
-                                                        
-                                                        ${selectedDeclaration.declarationType === 'objet' ? `
-                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Nature du document/objet perdu :</strong> ${selectedDeclaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
-                                                            ${selectedDeclaration.objectDetails?.serialNumber ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Numéro du document :</strong> ${selectedDeclaration.objectDetails.serialNumber}</p>` : ''}
-                                                            ${selectedDeclaration.objectDetails?.objectBrand ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Marque :</strong> ${selectedDeclaration.objectDetails.objectBrand}</p>` : ''}
-                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Date approximative de la perte :</strong> ${dayjs(selectedDeclaration.declarationDate).format('DD MMMM YYYY')}</p>
-                                                            <p style="font-size: 14px; margin: 5px 0;"><strong>Lieu présumé de la perte :</strong> ${selectedDeclaration.location}</p>
-                                                        ` : ''}
-                                                    </div>
-
-                                                    <div style="margin-bottom: 30px;">
-                                                        <h2 style="font-size: 20px; margin-bottom: 15px;">UTILITÉ DE LA DÉCLARATION</h2>
-                                                        <p style="font-size: 14px; margin: 5px 0;">Cette déclaration est faite pour servir et valoir ce que de droit, notamment dans le cadre de la demande de renouvellement du document perdu, et comme preuve de bonne foi.</p>
-                                                    </div>
-
-                                                    <div style="margin-top: 50px;">
-                                                        <p style="font-size: 14px; margin: 5px 0;">Fait à : ${selectedDeclaration.commissariat?.name || 'Non assigné'}</p>
-                                                        <p style="font-size: 14px; margin: 5px 0;">Le : ${dayjs(selectedDeclaration.receiptDate).format('DD MMMM YYYY')}</p>
-                                                        
-                                                        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
-                                                            <div style="width: 45%;">
-                                                                <p style="font-size: 14px; margin: 5px 0;">Le Déclarant</p>
-                                                                <div style="border-top: 1px solid #000; width: 200px; margin-top: 50px;"></div>
-                                                            </div>
-                                                            <div style="width: 45%;">
-                                                                <p style="font-size: 14px; margin: 5px 0;">L'Officier de Police Judiciaire</p>
-                                                                <p style="font-size: 14px; margin: 5px 0;">Nom : ${selectedDeclaration.agentAssigned?.firstName} ${selectedDeclaration.agentAssigned?.lastName || 'Non assigné'}</p>
-                                                                <div style="border-top: 1px solid #000; width: 200px; margin-top: 50px;"></div>
-                                                                <p style="font-size: 14px; margin: 5px 0;">Signature et cachet du commissariat</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                `;
-
-                                                // Ajouter l'élément au document
-                                                document.body.appendChild(receiptElement);
-
-                                                // Convertir en canvas puis en PDF
-                                                const canvas = await html2canvas(receiptElement, {
-                                                    scale: 2,
-                                                    useCORS: true,
-                                                    logging: false
-                                                });
-
-                                                const imgData = canvas.toDataURL('image/png');
-                                                const pdf = new jsPDF('p', 'mm', 'a4');
-                                                const pdfWidth = pdf.internal.pageSize.getWidth();
-                                                const pdfHeight = pdf.internal.pageSize.getHeight();
-                                                const imgWidth = canvas.width;
-                                                const imgHeight = canvas.height;
-                                                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-                                                const imgX = (pdfWidth - imgWidth * ratio) / 2;
-                                                const imgY = 0;
-
-                                                pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
-                                                pdf.save(`recepisse_officiel_${selectedDeclaration.receiptNumber}.pdf`);
-
-                                                // Nettoyer
-                                                document.body.removeChild(receiptElement);
-                                            } catch (error) {
-                                                console.error('Erreur lors de la génération du PDF:', error);
-                                                toast.error('Erreur lors de la génération du PDF');
-                                            }
-                                        }}
+                                        onClick={() => handleDownloadReceipt(selectedDeclaration)}
                                         className="btn primary-btn"
                                     >
                                         Télécharger le récépissé

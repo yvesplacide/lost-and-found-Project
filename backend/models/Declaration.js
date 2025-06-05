@@ -61,8 +61,12 @@ const DeclarationSchema = mongoose.Schema({
     // Informations de traitement par le commissariat
     status: {
         type: String,
-        enum: ['En attente', 'En cours de traitement', 'Traitée', 'Clôturée'],
+        enum: ['En attente', 'Traité', 'Refusée'],
         default: 'En attente'
+    },
+    rejectReason: {
+        type: String,
+        trim: true
     },
     commissariat: { // Le commissariat assigné à cette déclaration
         type: mongoose.Schema.ObjectId,

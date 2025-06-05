@@ -11,8 +11,8 @@ function Header() {
 
   const handleLogout = () => {
     logout();
-    navigate('/auth'); // Redirige vers la page de connexion après déconnexion
-    toast.info('Vous avez été déconnecté avec succès.');
+    navigate('/auth');
+    toast.info('Déconnexion réussie');
   };
 
   // Si le chargement est en cours, on ne rend rien ou un indicateur de chargement

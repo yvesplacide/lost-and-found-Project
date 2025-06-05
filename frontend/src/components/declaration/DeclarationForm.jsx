@@ -131,7 +131,7 @@ function DeclarationForm({ onSubmitSuccess }) {
                     <textarea
                         id="description"
                         rows="5"
-                        {...register('description', { required: 'La description est requise', minLength: { value: 20, message: 'La description doit contenir au moins 20 caractères' } })}
+                        {...register('description', { required: 'La description est requise' })}
                         className="form-control"
                         placeholder="Décrivez en détail la perte ou la disparition..."
                     ></textarea>
