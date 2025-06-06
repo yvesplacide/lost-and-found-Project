@@ -58,16 +58,25 @@ export const createDeclaration = asyncHandler(async (req, res) => {
                 identificationMarks: objectDetails.identificationMarks
             };
         } else if (req.body.declarationType === 'personne') {
+            console.log('Données de la personne reçues:', req.body.personDetails);
+            const personDetails = typeof req.body.personDetails === 'string' 
+                ? JSON.parse(req.body.personDetails) 
+                : req.body.personDetails;
+            
+            console.log('Données de la personne parsées:', personDetails);
+            
             declarationData.personDetails = {
-                firstName: req.body.personDetails?.firstName,
-                lastName: req.body.personDetails?.lastName,
-                dateOfBirth: req.body.personDetails?.dateOfBirth,
-                gender: req.body.personDetails?.gender,
-                height: req.body.personDetails?.height,
-                weight: req.body.personDetails?.weight,
-                clothingDescription: req.body.personDetails?.clothingDescription,
-                lastSeenLocation: req.body.personDetails?.lastSeenLocation,
-                distinguishingMarks: req.body.personDetails?.distinguishingMarks
+                firstName: personDetails.firstName,
+                lastName: personDetails.lastName,
+                dateOfBirth: personDetails.dateOfBirth,
+                gender: personDetails.gender,
+                height: personDetails.height,
+                weight: personDetails.weight,
+                clothingDescription: personDetails.clothingDescription,
+                lastSeenLocation: personDetails.lastSeenLocation,
+                distinguishingMarks: personDetails.distinguishingMarks,
+                medicalConditions: personDetails.medicalConditions,
+                contactInfo: personDetails.contactInfo
             };
         }
 

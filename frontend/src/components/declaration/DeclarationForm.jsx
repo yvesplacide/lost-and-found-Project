@@ -6,7 +6,21 @@ import api from '../../services/api'; // Pour récupérer la liste des commissar
 import dayjs from 'dayjs'; // Pour gérer les dates
 
 function DeclarationForm({ onSubmitSuccess }) {
-    const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm();
+    const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm({
+        defaultValues: {
+            personDetails: {
+                firstName: '',
+                lastName: '',
+                dateOfBirth: '',
+                gender: '',
+                height: '',
+                weight: '',
+                clothingDescription: '',
+                lastSeenLocation: '',
+                distinguishingMarks: ''
+            }
+        }
+    });
     const declarationType = watch('declarationType'); // Observe le type de déclaration pour afficher les champs conditionnels
     const [commissariats, setCommissariats] = useState([]);
     const [loadingCommissariats, setLoadingCommissariats] = useState(true);
@@ -32,6 +46,15 @@ function DeclarationForm({ onSubmitSuccess }) {
         try {
             setIsSubmitting(true);
             console.log('Données du formulaire avant envoi:', data);
+            
+            // Vérifier les données de la personne
+            if (data.declarationType === 'personne') {
+                console.log('Données de la personne avant envoi:', data.personDetails);
+                if (!data.personDetails.firstName || !data.personDetails.lastName) {
+                    throw new Error('Le nom et le prénom sont requis');
+                }
+            }
+
             // Ajuster la date pour correspondre au format attendu par le backend (ISO 8601)
             data.declarationDate = dayjs(data.declarationDate).toISOString();
 
@@ -53,10 +76,10 @@ function DeclarationForm({ onSubmitSuccess }) {
             }
             
             // Corriger l'envoi des détails spécifiques comme objet JSON stringifié
-            if (declarationType === 'objet' && data.objectDetails) {
+            if (data.declarationType === 'objet' && data.objectDetails) {
                 console.log('Données de l\'objet avant envoi:', data.objectDetails);
                 formData.set('objectDetails', JSON.stringify(data.objectDetails));
-            } else if (declarationType === 'personne' && data.personDetails) {
+            } else if (data.declarationType === 'personne' && data.personDetails) {
                 console.log('Données de la personne avant envoi:', data.personDetails);
                 formData.set('personDetails', JSON.stringify(data.personDetails));
             }
@@ -249,7 +272,11 @@ function DeclarationForm({ onSubmitSuccess }) {
                             <input
                                 type="text"
                                 id="personDetails.firstName"
-                                {...register('personDetails.firstName', { required: 'Le prénom est requis' })}
+                                {...register('personDetails.firstName', { 
+                                    required: 'Le prénom est requis',
+                                    onChange: (e) => setValue('personDetails.firstName', e.target.value)
+                                })}
+                                className="form-control"
                             />
                             {errors.personDetails?.firstName && <span className="error-message">{errors.personDetails.firstName.message}</span>}
                         </div>
@@ -258,7 +285,11 @@ function DeclarationForm({ onSubmitSuccess }) {
                             <input
                                 type="text"
                                 id="personDetails.lastName"
-                                {...register('personDetails.lastName', { required: 'Le nom est requis' })}
+                                {...register('personDetails.lastName', { 
+                                    required: 'Le nom est requis',
+                                    onChange: (e) => setValue('personDetails.lastName', e.target.value)
+                                })}
+                                className="form-control"
                             />
                             {errors.personDetails?.lastName && <span className="error-message">{errors.personDetails.lastName.message}</span>}
                         </div>
@@ -268,17 +299,78 @@ function DeclarationForm({ onSubmitSuccess }) {
                                 type="date"
                                 id="personDetails.dateOfBirth"
                                 {...register('personDetails.dateOfBirth', { required: 'La date de naissance est requise' })}
-                                max={dayjs().format('YYYY-MM-DD')} // Empêche les dates de naissance futures
+                                max={dayjs().format('YYYY-MM-DD')}
+                                className="form-control"
                             />
                             {errors.personDetails?.dateOfBirth && <span className="error-message">{errors.personDetails.dateOfBirth.message}</span>}
                         </div>
                         <div className="form-group">
-                            <label htmlFor="personDetails.lastSeenLocation">Dernier lieu vu (optionnel)</label>
+                            <label htmlFor="personDetails.gender">Genre</label>
+                            <select
+                                id="personDetails.gender"
+                                {...register('personDetails.gender', { required: 'Le genre est requis' })}
+                                className="form-control"
+                            >
+                                <option value="">Sélectionner un genre</option>
+                                <option value="Masculin">Masculin</option>
+                                <option value="Féminin">Féminin</option>
+                                <option value="Autre">Autre</option>
+                            </select>
+                            {errors.personDetails?.gender && <span className="error-message">{errors.personDetails.gender.message}</span>}
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="personDetails.height">Taille (cm)</label>
+                            <input
+                                type="number"
+                                id="personDetails.height"
+                                {...register('personDetails.height', { required: 'La taille est requise' })}
+                                className="form-control"
+                                min="0"
+                                max="300"
+                            />
+                            {errors.personDetails?.height && <span className="error-message">{errors.personDetails.height.message}</span>}
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="personDetails.weight">Poids (kg)</label>
+                            <input
+                                type="number"
+                                id="personDetails.weight"
+                                {...register('personDetails.weight', { required: 'Le poids est requis' })}
+                                className="form-control"
+                                min="0"
+                                max="500"
+                            />
+                            {errors.personDetails?.weight && <span className="error-message">{errors.personDetails.weight.message}</span>}
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="personDetails.clothingDescription">Description des vêtements</label>
+                            <textarea
+                                id="personDetails.clothingDescription"
+                                {...register('personDetails.clothingDescription', { required: 'La description des vêtements est requise' })}
+                                className="form-control"
+                                placeholder="Décrivez les vêtements portés par la personne au moment de sa disparition"
+                            />
+                            {errors.personDetails?.clothingDescription && <span className="error-message">{errors.personDetails.clothingDescription.message}</span>}
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="personDetails.distinguishingMarks">Signes particuliers</label>
+                            <textarea
+                                id="personDetails.distinguishingMarks"
+                                {...register('personDetails.distinguishingMarks')}
+                                className="form-control"
+                                placeholder="Cicatrices, tatouages, particularités physiques..."
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="personDetails.lastSeenLocation">Dernier lieu vu</label>
                             <input
                                 type="text"
                                 id="personDetails.lastSeenLocation"
-                                {...register('personDetails.lastSeenLocation')}
+                                {...register('personDetails.lastSeenLocation', { required: 'Le dernier lieu vu est requis' })}
+                                className="form-control"
+                                placeholder="Adresse ou lieu précis où la personne a été vue pour la dernière fois"
                             />
+                            {errors.personDetails?.lastSeenLocation && <span className="error-message">{errors.personDetails.lastSeenLocation.message}</span>}
                         </div>
                     </div>
                 )}

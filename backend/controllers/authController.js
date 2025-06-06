@@ -83,6 +83,11 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new Error('Invalid credentials');
     }
 
+    // Si l'utilisateur est un agent de commissariat, récupérer les informations du commissariat
+    if (user.role === 'commissariat_agent') {
+        await user.populate('commissariat', 'name city');
+    }
+
     // Si tout est bon, renvoyer les infos utilisateur et le token
     res.json({
         _id: user._id,
@@ -93,6 +98,7 @@ const loginUser = asyncHandler(async (req, res) => {
         address: user.address,
         profession: user.profession,
         role: user.role,
+        commissariat: user.commissariat,
         token: user.getSignedJwtToken(), // Générer et envoyer le token JWT
     });
 });

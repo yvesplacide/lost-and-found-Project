@@ -58,12 +58,24 @@ export const generateReceiptContent = (declaration, receiptNumber) => {
                 ${declaration.objectDetails?.objectBrand ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Marque :</strong> ${declaration.objectDetails.objectBrand}</p>` : ''}
                 <p style="font-size: 14px; margin: 5px 0;"><strong>Date approximative de la perte :</strong> ${dayjs(declaration.declarationDate).format('DD MMMM YYYY')}</p>
                 <p style="font-size: 14px; margin: 5px 0;"><strong>Lieu présumé de la perte :</strong> ${declaration.location}</p>
-            ` : ''}
+            ` : `
+                <p style="font-size: 14px; margin: 5px 0;"><strong>Type de déclaration :</strong> Disparition de personne</p>
+                <p style="font-size: 14px; margin: 5px 0;"><strong>Nom :</strong> ${declaration.personDetails?.lastName || 'Non spécifié'}</p>
+                <p style="font-size: 14px; margin: 5px 0;"><strong>Prénom :</strong> ${declaration.personDetails?.firstName || 'Non spécifié'}</p>
+                <p style="font-size: 14px; margin: 5px 0;"><strong>Date de naissance :</strong> ${dayjs(declaration.personDetails?.dateOfBirth).format('DD MMMM YYYY') || 'Non spécifiée'}</p>
+                ${declaration.personDetails?.gender ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Genre :</strong> ${declaration.personDetails.gender}</p>` : ''}
+                ${declaration.personDetails?.height ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Taille :</strong> ${declaration.personDetails.height} cm</p>` : ''}
+                ${declaration.personDetails?.weight ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Poids :</strong> ${declaration.personDetails.weight} kg</p>` : ''}
+                ${declaration.personDetails?.clothingDescription ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Description des vêtements :</strong> ${declaration.personDetails.clothingDescription}</p>` : ''}
+                ${declaration.personDetails?.distinguishingMarks ? `<p style="font-size: 14px; margin: 5px 0;"><strong>Signes particuliers :</strong> ${declaration.personDetails.distinguishingMarks}</p>` : ''}
+                <p style="font-size: 14px; margin: 5px 0;"><strong>Date de la disparition :</strong> ${dayjs(declaration.declarationDate).format('DD MMMM YYYY')}</p>
+                <p style="font-size: 14px; margin: 5px 0;"><strong>Dernier lieu vu :</strong> ${declaration.personDetails?.lastSeenLocation || declaration.location}</p>
+            `}
         </div>
 
         <div style="margin-bottom: 30px;">
             <h2 style="font-size: 20px; margin-bottom: 15px;">UTILITÉ DE LA DÉCLARATION</h2>
-            <p style="font-size: 14px; margin: 5px 0;">Cette déclaration est faite pour servir et valoir ce que de droit, notamment dans le cadre de la demande de renouvellement du document perdu, et comme preuve de bonne foi.</p>
+            <p style="font-size: 14px; margin: 5px 0;">Cette déclaration est faite pour servir et valoir ce que de droit, notamment dans le cadre de la recherche de la personne disparue, et comme preuve de bonne foi.</p>
         </div>
 
         <div style="margin-top: 50px;">
@@ -112,20 +124,20 @@ function ReceiptGenerator({ declaration, onReceiptGenerated }) {
                         receiptNumber: newReceiptNumber,
                         receiptDate: new Date().toISOString(),
                         agentAssigned: declaration.agentAssigned?._id,
-                        status: 'Traité'
+                        status: 'Traité',
+                        processedAt: new Date().toISOString()
                     });
                     
                     if (response.data) {
                         console.log('Déclaration mise à jour:', response.data);
-                        console.log('Agent assigné après mise à jour:', response.data.agentAssigned);
-                        toast.success('Récépissé généré');
+                        toast.success('Récépissé généré et déclaration traitée');
                         if (onReceiptGenerated) {
                             onReceiptGenerated(newReceiptNumber);
                         }
                     }
                 } catch (error) {
-                    console.error('Erreur lors de la mise à jour du récépissé:', error);
-                    toast.error('Erreur lors de la génération du récépissé');
+                    console.error('Erreur lors de la mise à jour de la déclaration:', error);
+                    toast.error('Erreur lors de la mise à jour de la déclaration');
                     return;
                 }
             }

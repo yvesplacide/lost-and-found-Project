@@ -100,7 +100,7 @@ function HomePage() {
                             <Link to="/auth" className="hero-btn secondary-btn">
                                 Se connecter
                             </Link>
-                            <Link to="/auth?register=true" className="hero-btn secondary-btn">
+                            <Link to="/auth?mode=register" className="hero-btn secondary-btn">
                                 S'inscrire
                             </Link>
                         </>

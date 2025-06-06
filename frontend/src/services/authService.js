@@ -31,8 +31,23 @@ const login = async (userData) => {
 };
 
 const logout = () => {
-    Cookies.remove('token'); // Supprime le token
-    // localStorage.removeItem('user'); // Supprime les infos utilisateur si stockées
+    // Supprimer le token des cookies
+    Cookies.remove('token');
+    
+    // Supprimer toutes les données du localStorage
+    localStorage.clear();
+    
+    // Supprimer toutes les données du sessionStorage
+    sessionStorage.clear();
+    
+    // Supprimer les données du cache du navigateur
+    if ('caches' in window) {
+        caches.keys().then(cacheNames => {
+            cacheNames.forEach(cacheName => {
+                caches.delete(cacheName);
+            });
+        });
+    }
 };
 
 // Fonction pour obtenir l'utilisateur courant basé sur le token (utile pour rafraîchir la page)

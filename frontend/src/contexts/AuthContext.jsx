@@ -27,7 +27,13 @@ export const AuthProvider = ({ children }) => {
                 }
                 // Si le token est valide et non expiré, récupère les infos utilisateur complètes
                 const userData = await authService.getMe();
-                setUser(userData);
+                if (userData.role === 'commissariat_agent' && !userData.commissariat) {
+                    // Si c'est un agent mais que les infos du commissariat ne sont pas présentes
+                    const updatedUserData = await authService.getMe(); // Recharger les données
+                    setUser(updatedUserData);
+                } else {
+                    setUser(userData);
+                }
             } catch (error) {
                 console.error("Failed to decode token or fetch user:", error);
                 logout(); // Supprime le token invalide

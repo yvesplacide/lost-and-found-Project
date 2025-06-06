@@ -42,20 +42,42 @@ const DeclarationSchema = mongoose.Schema({
 
     // Informations spécifiques aux personnes
     personDetails: {
-        firstName: String,
-        lastName: String,
-        dateOfBirth: Date,
+        firstName: {
+            type: String,
+            required: [true, 'Le prénom est requis']
+        },
+        lastName: {
+            type: String,
+            required: [true, 'Le nom est requis']
+        },
+        dateOfBirth: {
+            type: Date,
+            required: [true, 'La date de naissance est requise']
+        },
         gender: {
             type: String,
-            enum: ['Masculin', 'Féminin', 'Autre']
+            enum: ['Masculin', 'Féminin', 'Autre'],
+            required: [true, 'Le genre est requis']
         },
-        height: Number, // en cm
-        weight: Number, // en kg
-        hairColor: String,
-        eyeColor: String,
-        clothingDescription: String, // Description des vêtements portés
-        lastSeenLocation: String,
-        distinguishingMarks: String, // Marques distinctives (cicatrices, tatouages)
+        height: {
+            type: Number,
+            required: [true, 'La taille est requise']
+        },
+        weight: {
+            type: Number,
+            required: [true, 'Le poids est requis']
+        },
+        clothingDescription: {
+            type: String,
+            required: [true, 'La description des vêtements est requise']
+        },
+        lastSeenLocation: {
+            type: String,
+            required: [true, 'Le dernier lieu vu est requis']
+        },
+        distinguishingMarks: String,
+        medicalConditions: String,
+        contactInfo: String
     },
 
     // Informations de traitement par le commissariat

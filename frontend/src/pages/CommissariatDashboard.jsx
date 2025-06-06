@@ -13,9 +13,10 @@ import ReceiptGenerator from '../components/declaration/ReceiptGenerator';
 dayjs.locale('fr');
 
 function CommissariatDashboard() {
-    const { user } = useAuth();
+    const { user, setUser } = useAuth();
     const [declarations, setDeclarations] = useState([]);
     const [rejectedDeclarations, setRejectedDeclarations] = useState([]);
+    const [treatedDeclarations, setTreatedDeclarations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedDeclaration, setSelectedDeclaration] = useState(null);
@@ -24,20 +25,15 @@ function CommissariatDashboard() {
     const [rejectReason, setRejectReason] = useState('');
     const [activeTab, setActiveTab] = useState('pending');
     const [activeSidebarTab, setActiveSidebarTab] = useState('dashboard');
+    const [searchQuery, setSearchQuery] = useState('');
     const location = useLocation();
 
     const fetchCommissariatDeclarations = async () => {
-        if (!user) {
-            console.log('User not available');
-            setError('Informations de commissariat non disponibles pour cet agent.');
-            setLoading(false);
-            return;
-        }
-
         try {
             setLoading(true);
-            
-            if (user.role !== 'commissariat_agent') {
+            setError(null);
+
+            if (!user || user.role !== 'commissariat_agent') {
                 throw new Error('Accès non autorisé. Vous devez être un agent de commissariat.');
             }
 
@@ -61,14 +57,23 @@ function CommissariatDashboard() {
                 throw new Error('ID du commissariat non disponible');
             }
 
+            console.log('Fetching declarations for commissariat:', commissariatId);
             const response = await api.get(`/declarations/commissariat/${commissariatId}`);
-            
+            console.log('Raw response data:', response.data);
+
             if (Array.isArray(response.data)) {
-                // Séparer les déclarations en attente et refusées
-                const pending = response.data.filter(decl => decl.status === 'En attente');
-                const rejected = response.data.filter(decl => decl.status === 'Refusée');
-                setDeclarations(pending);
-                setRejectedDeclarations(rejected);
+                // Séparer les déclarations par statut
+                const pendingDeclarations = response.data.filter(decl => decl.status === 'En attente');
+                const rejectedDeclarations = response.data.filter(decl => decl.status === 'Refusée');
+                const treatedDeclarations = response.data.filter(decl => decl.status === 'Traité');
+
+                console.log('Pending declarations:', pendingDeclarations.length);
+                console.log('Rejected declarations:', rejectedDeclarations.length);
+                console.log('Treated declarations:', treatedDeclarations.length);
+
+                setDeclarations(pendingDeclarations);
+                setRejectedDeclarations(rejectedDeclarations);
+                setTreatedDeclarations(treatedDeclarations);
                 setError(null);
             } else {
                 setError('Format de données invalide reçu du serveur');
@@ -89,6 +94,25 @@ function CommissariatDashboard() {
             console.log('User role:', user.role);
             console.log('User commissariat:', user.commissariat);
             console.log('User commissariat type:', typeof user.commissariat);
+            
+            // Si c'est un agent de commissariat mais que les infos du commissariat ne sont pas présentes
+            if (user.role === 'commissariat_agent' && !user.commissariat) {
+                // Recharger les données utilisateur
+                api.get('/auth/me')
+                    .then(response => {
+                        if (response.data.commissariat) {
+                            setUser(prevUser => ({
+                                ...prevUser,
+                                commissariat: response.data.commissariat
+                            }));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors du rechargement des données utilisateur:', error);
+                        toast.error('Erreur lors du chargement des informations du commissariat');
+                    });
+            }
+            
             fetchCommissariatDeclarations();
         }
     }, [user]);
@@ -151,6 +175,21 @@ function CommissariatDashboard() {
         }
     };
 
+    // Fonction de filtrage des déclarations
+    const filterDeclarations = (declarations) => {
+        if (!searchQuery.trim()) return declarations;
+        
+        const query = searchQuery.toLowerCase().trim();
+        return declarations.filter(declaration => {
+            const declarationId = declaration.declarationNumber || declaration._id;
+            const declarantName = declaration.user ? 
+                `${declaration.user.firstName} ${declaration.user.lastName}`.toLowerCase() : '';
+            
+            return declarationId.toLowerCase().includes(query) || 
+                   declarantName.includes(query);
+        });
+    };
+
     const renderContent = () => {
         switch (activeSidebarTab) {
             case 'dashboard':
@@ -184,8 +223,8 @@ function CommissariatDashboard() {
                                 Déclarations refusées
                             </button>
                             <button 
-                                className={`tab-button ${activeTab === 'processed' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('processed')}
+                                className={`tab-button ${activeTab === 'treated' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('treated')}
                             >
                                 Déclarations traitées
                             </button>
@@ -197,6 +236,28 @@ function CommissariatDashboard() {
                                 activeTab === 'rejected' ? 'Déclarations Refusées' :
                                 'Déclarations Traitées'
                             }</h3>
+
+                            {/* Barre de recherche pour les déclarations refusées et traitées */}
+                            {(activeTab === 'rejected' || activeTab === 'treated') && (
+                                <div className="search-container">
+                                    <input
+                                        type="text"
+                                        placeholder="Rechercher par numéro de déclaration..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="search-input"
+                                    />
+                                    {searchQuery && (
+                                        <button 
+                                            className="clear-search-btn"
+                                            onClick={() => setSearchQuery('')}
+                                        >
+                                            Effacer
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
                             {loading ? (
                                 <div className="loading-container">
                                     <div className="loading-spinner"></div>
@@ -210,18 +271,18 @@ function CommissariatDashboard() {
                                     </button>
                                 </div>
                             ) : (activeTab === 'pending' ? declarations : 
-                                 activeTab === 'rejected' ? rejectedDeclarations :
-                                 declarations.filter(decl => decl.status === 'Traité')).length === 0 ? (
+                                 activeTab === 'rejected' ? filterDeclarations(rejectedDeclarations) :
+                                 filterDeclarations(treatedDeclarations)).length === 0 ? (
                                 <p>Aucune déclaration {
                                     activeTab === 'pending' ? 'en attente' :
                                     activeTab === 'rejected' ? 'refusée' :
                                     'traitée'
-                                } pour votre commissariat pour l'instant.</p>
+                                } {searchQuery ? 'ne correspond à votre recherche' : 'pour votre commissariat pour l\'instant'}.</p>
                             ) : (
                                 <div className="declaration-cards">
                                     {(activeTab === 'pending' ? declarations : 
-                                      activeTab === 'rejected' ? rejectedDeclarations :
-                                      declarations.filter(decl => decl.status === 'Traité')).map((declaration) => (
+                                      activeTab === 'rejected' ? filterDeclarations(rejectedDeclarations) :
+                                      filterDeclarations(treatedDeclarations)).map((declaration) => (
                                         <div 
                                             key={declaration._id} 
                                             className="declaration-card"
@@ -231,7 +292,7 @@ function CommissariatDashboard() {
                                         >
                                             <div className="declaration-info">
                                                 <h4>Déclaration de {declaration.declarationType === 'objet' ? 'perte d\'objet' : 'disparition de personne'}</h4>
-                                                <p><strong>N° de déclaration:</strong> {declaration._id}</p>
+                                                <p><strong>N° de déclaration:</strong> {declaration.declarationNumber || declaration._id}</p>
                                                 <p><strong>Statut:</strong> <span className={`status-${declaration.status.toLowerCase().replace(/\s/g, '-')}`}>{declaration.status}</span></p>
                                                 {declaration.status === 'Refusée' && declaration.rejectReason && (
                                                     <p><strong>Motif du refus:</strong> {declaration.rejectReason}</p>
@@ -242,6 +303,21 @@ function CommissariatDashboard() {
                                                         <p><strong>Catégorie:</strong> {declaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
                                                         <p><strong>Nom:</strong> {declaration.objectDetails?.objectName || 'Non spécifié'}</p>
                                                         <p><strong>Marque:</strong> {declaration.objectDetails?.objectBrand || 'Non spécifiée'}</p>
+                                                    </>
+                                                )}
+                                                {declaration.declarationType === 'personne' && (
+                                                    <>
+                                                        <p><strong>Nom:</strong> {declaration.personDetails?.lastName || 'Non spécifié'}</p>
+                                                        <p><strong>Prénom:</strong> {declaration.personDetails?.firstName || 'Non spécifié'}</p>
+                                                        <p><strong>Date de naissance:</strong> {dayjs(declaration.personDetails?.dateOfBirth).format('DD MMMM YYYY') || 'Non spécifiée'}</p>
+                                                        {declaration.personDetails?.gender && <p><strong>Genre:</strong> {declaration.personDetails.gender}</p>}
+                                                        <p><strong>Dernier lieu vu:</strong> {declaration.personDetails?.lastSeenLocation || declaration.location}</p>
+                                                    </>
+                                                )}
+                                                {declaration.status === 'Traité' && (
+                                                    <>
+                                                        <p><strong>Date de traitement:</strong> {dayjs(declaration.processedAt).format('DD/MM/YYYY HH:mm')}</p>
+                                                        <p><strong>Récépissé:</strong> {declaration.receiptNumber || 'Non disponible'}</p>
                                                     </>
                                                 )}
                                             </div>
@@ -278,7 +354,7 @@ function CommissariatDashboard() {
                         <div className="stats-grid">
                             <div className="stat-card">
                                 <h3>Total des déclarations</h3>
-                                <p className="stat-number">{declarations.length + rejectedDeclarations.length}</p>
+                                <p className="stat-number">{declarations.length + rejectedDeclarations.length + treatedDeclarations.length}</p>
                             </div>
                             <div className="stat-card">
                                 <h3>En attente</h3>
@@ -290,7 +366,7 @@ function CommissariatDashboard() {
                             </div>
                             <div className="stat-card">
                                 <h3>Traitées</h3>
-                                <p className="stat-number">{declarations.filter(decl => decl.status === 'Traité').length}</p>
+                                <p className="stat-number">{treatedDeclarations.length}</p>
                             </div>
                         </div>
                     </div>
@@ -399,6 +475,15 @@ function CommissariatDashboard() {
                                     <p><strong>Marque:</strong> {selectedDeclaration.objectDetails?.objectBrand || 'Non spécifiée'}</p>
                                 </>
                             )}
+                            {selectedDeclaration.declarationType === 'personne' && (
+                                <>
+                                    <p><strong>Nom:</strong> {selectedDeclaration.personDetails?.lastName || 'Non spécifié'}</p>
+                                    <p><strong>Prénom:</strong> {selectedDeclaration.personDetails?.firstName || 'Non spécifié'}</p>
+                                    <p><strong>Date de naissance:</strong> {dayjs(selectedDeclaration.personDetails?.dateOfBirth).format('DD MMMM YYYY') || 'Non spécifiée'}</p>
+                                    {selectedDeclaration.personDetails?.gender && <p><strong>Genre:</strong> {selectedDeclaration.personDetails.gender}</p>}
+                                    <p><strong>Dernier lieu vu:</strong> {selectedDeclaration.personDetails?.lastSeenLocation || selectedDeclaration.location}</p>
+                                </>
+                            )}
                             <p><strong>Statut:</strong> {selectedDeclaration.status}</p>
                             {selectedDeclaration.status === 'Refusée' && selectedDeclaration.rejectReason && (
                                 <p><strong>Motif du refus:</strong> {selectedDeclaration.rejectReason}</p>
@@ -420,7 +505,15 @@ function CommissariatDashboard() {
                                 <h4>Détails de la personne</h4>
                                 <p><strong>Nom:</strong> {selectedDeclaration.personDetails.lastName}, <strong>Prénom:</strong> {selectedDeclaration.personDetails.firstName}</p>
                                 <p><strong>Date de naissance:</strong> {dayjs(selectedDeclaration.personDetails.dateOfBirth).format('DD MMMM YYYY')}</p>
-                                {selectedDeclaration.personDetails.lastSeenLocation && <p><strong>Dernier lieu vu:</strong> {selectedDeclaration.personDetails.lastSeenLocation}</p>}
+                                {selectedDeclaration.personDetails.gender && <p><strong>Genre:</strong> {selectedDeclaration.personDetails.gender}</p>}
+                                {selectedDeclaration.personDetails.height && <p><strong>Taille:</strong> {selectedDeclaration.personDetails.height} cm</p>}
+                                {selectedDeclaration.personDetails.weight && <p><strong>Poids:</strong> {selectedDeclaration.personDetails.weight} kg</p>}
+                                {selectedDeclaration.personDetails.clothingDescription && <p><strong>Description des vêtements:</strong> {selectedDeclaration.personDetails.clothingDescription}</p>}
+                                {selectedDeclaration.personDetails.distinguishingMarks && <p><strong>Signes particuliers:</strong> {selectedDeclaration.personDetails.distinguishingMarks}</p>}
+                                {selectedDeclaration.personDetails.medicalConditions && <p><strong>Conditions médicales:</strong> {selectedDeclaration.personDetails.medicalConditions}</p>}
+                                {selectedDeclaration.personDetails.contactInfo && <p><strong>Contact d'urgence:</strong> {selectedDeclaration.personDetails.contactInfo}</p>}
+                                <p><strong>Dernier lieu vu:</strong> {selectedDeclaration.personDetails.lastSeenLocation || selectedDeclaration.location}</p>
+                                {selectedDeclaration.personDetails.lastSeenDate && <p><strong>Dernière date de vue:</strong> {dayjs(selectedDeclaration.personDetails.lastSeenDate).format('DD MMMM YYYY à HH:mm')}</p>}
                             </div>
                         )}
 
@@ -485,16 +578,40 @@ function CommissariatDashboard() {
                                                 ...selectedDeclaration,
                                                 receiptNumber,
                                                 receiptDate: new Date().toISOString(),
-                                                status: 'Traité'
+                                                status: 'Traité',
+                                                processedAt: new Date().toISOString()
                                             };
 
+                                            // Mettre à jour les listes de déclarations
                                             setDeclarations(prev => prev.filter(decl => decl._id !== selectedDeclaration._id));
+                                            setTreatedDeclarations(prev => [...prev, updatedDeclaration]);
                                             setSelectedDeclaration(updatedDeclaration);
 
-                                            api.put(`/declarations/${updatedDeclaration._id}/status`, updatedDeclaration);
+                                            // Mettre à jour la déclaration dans la base de données
+                                            api.put(`/declarations/${updatedDeclaration._id}`, updatedDeclaration)
+                                                .then(() => {
+                                                    toast.success('Déclaration traitée avec succès');
+                                                    fetchCommissariatDeclarations(); // Recharger toutes les déclarations
+                                                })
+                                                .catch(error => {
+                                                    console.error('Erreur lors de la mise à jour de la déclaration:', error);
+                                                    toast.error('Erreur lors de la mise à jour de la déclaration');
+                                                });
                                         }}
                                     />
                                 </div>
+                            )}
+                        </div>
+
+                        {/* Boutons d'action selon le statut */}
+                        <div className="modal-footer">
+                            {selectedDeclaration.status === 'Refusée' && (
+                                <button 
+                                    onClick={() => handleDeleteDeclaration(selectedDeclaration._id)}
+                                    className="btn delete-btn"
+                                >
+                                    Supprimer la déclaration
+                                </button>
                             )}
                         </div>
                     </div>

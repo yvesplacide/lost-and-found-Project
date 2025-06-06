@@ -21,8 +21,7 @@ function UserDashboard() {
     const [selectedDeclaration, setSelectedDeclaration] = useState(null);
     const [showDeclarationForm, setShowDeclarationForm] = useState(false);
     const [selectedPhoto, setSelectedPhoto] = useState(null);
-    const [isEditing, setIsEditing] = useState(false);
-    const [activeFilter, setActiveFilter] = useState('all');
+    const [activeFilter, setActiveFilter] = useState('pending');
 
     const fetchUserDeclarations = async () => {
         try {
@@ -74,30 +73,15 @@ function UserDashboard() {
         setShowDeclarationForm(true);
     };
 
-    const handleEditDeclaration = (declaration) => {
-        setSelectedDeclaration(declaration);
-        setIsEditing(true);
-        setShowDeclarationForm(true);
-    };
-
     const handleDeclarationSubmit = async (newDeclaration) => {
-        if (isEditing) {
-            try {
-                const response = await api.put(`/declarations/${selectedDeclaration._id}`, newDeclaration);
-                setDeclarations(prev => prev.map(decl => 
-                    decl._id === selectedDeclaration._id ? response.data : decl
-                ));
-                toast.success('Déclaration modifiée avec succès !');
-            } catch (err) {
-                console.error('Erreur lors de la modification de la déclaration:', err);
-                toast.error(err.response?.data?.message || 'Erreur lors de la modification de la déclaration');
-            }
-        } else {
-        await fetchUserDeclarations();
+        try {
+            await fetchUserDeclarations();
             toast.success('Déclaration créée avec succès !');
+        } catch (err) {
+            console.error('Erreur lors de la création de la déclaration:', err);
+            toast.error(err.response?.data?.message || 'Erreur lors de la création de la déclaration');
         }
         setShowDeclarationForm(false);
-        setIsEditing(false);
         setSelectedDeclaration(null);
     };
 
@@ -199,6 +183,12 @@ function UserDashboard() {
                         {declarations.filter(d => d.status === 'Traité').length}
                     </div>
                 </div>
+                <div className="stat-card">
+                    <h3>Refusées</h3>
+                    <div className="number">
+                        {declarations.filter(d => d.status === 'Refusée').length}
+                    </div>
+                </div>
             </div>
 
             {!showDeclarationForm ? (
@@ -269,8 +259,17 @@ function UserDashboard() {
                                                 <strong>Motif du refus :</strong> {declaration.rejectReason}
                                             </div>
                                         )}
-                                        <p><strong>Date:</strong> {dayjs(declaration.declarationDate).format('DD MMMM YYYY à HH:mm')}</p>
-                                        <p><strong>Lieu:</strong> {declaration.location}</p>
+                                        {declaration.declarationType === 'objet' ? (
+                                            <>
+                                                <p><strong>Catégorie:</strong> {declaration.objectDetails?.objectCategory || 'Non spécifiée'}</p>
+                                                <p><strong>Nom de l'objet:</strong> {declaration.objectDetails?.objectName || 'Non spécifié'}</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <p><strong>Nom:</strong> {declaration.personDetails?.lastName || 'Non spécifié'}</p>
+                                                <p><strong>Prénom:</strong> {declaration.personDetails?.firstName || 'Non spécifié'}</p>
+                                            </>
+                                        )}
                                         <p><strong>Commissariat:</strong> {declaration.commissariat?.name || 'Non assigné'}</p>
                                     </div>
 
@@ -317,14 +316,6 @@ function UserDashboard() {
 
                             {/* Boutons d'action selon le statut */}
                             <div className="modal-footer">
-                                {selectedDeclaration.status === 'En attente' && (
-                                    <button 
-                                        onClick={() => handleEditDeclaration(selectedDeclaration)}
-                                        className="btn edit-btn"
-                                    >
-                                        Modifier la déclaration
-                                    </button>
-                                )}
                                 {selectedDeclaration.status === 'Refusée' && (
                                     <button 
                                         onClick={() => handleDeleteDeclaration(selectedDeclaration._id)}
