@@ -1,0 +1,67 @@
+/* Styles pour les champs de date */
+.date-input-container {
+    position: relative;
+    width: 100%;
+}
+
+.date-input-container input[type="date"],
+.date-input-container input[type="datetime-local"] {
+    width: 100%;
+    padding: 0.75rem;
+    padding-right: 2.5rem;
+    border: 2px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    background-color: white;
+    color: #333;
+    cursor: pointer;
+}
+
+/* Style pour l'icône native du calendrier */
+.date-input-container input[type="date"]::-webkit-calendar-picker-indicator,
+.date-input-container input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.5rem;
+    height: 1.5rem;
+    cursor: pointer;
+    opacity: 1;
+    filter: brightness(0); /* Rend l'icône noire */
+}
+
+/* Style pour Firefox */
+.date-input-container input[type="date"]::-moz-calendar-picker-indicator,
+.date-input-container input[type="datetime-local"]::-moz-calendar-picker-indicator {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.5rem;
+    height: 1.5rem;
+    cursor: pointer;
+    opacity: 1;
+}
+
+/* Style pour Edge */
+.date-input-container input[type="date"]::-ms-clear,
+.date-input-container input[type="datetime-local"]::-ms-clear {
+    display: none;
+}
+
+/* Style au focus */
+.date-input-container input[type="date"]:focus,
+.date-input-container input[type="datetime-local"]:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Style pour l'état désactivé */
+.date-input-container input[type="date"]:disabled,
+.date-input-container input[type="datetime-local"]:disabled {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+    opacity: 0.7;
+} 

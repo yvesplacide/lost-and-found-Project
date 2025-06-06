@@ -55,7 +55,7 @@ function HomePage() {
                         <Link to="/commissariat-dashboard" className="hero-btn primary-btn">
                             Gérer les déclarations
                         </Link>
-                        <Link to="/commissariat/statistics" className="hero-btn secondary-btn">
+                        <Link to="/commissariat-dashboard/statistics" className="hero-btn secondary-btn">
                             Voir les statistiques
                         </Link>
                     </div>
@@ -72,18 +72,36 @@ function HomePage() {
                         <Link to="/admin-dashboard" className="hero-btn primary-btn">
                             Accéder au panneau d'administration
                         </Link>
-                        <Link to="/admin/statistics" className="hero-btn secondary-btn">
-                            Voir les statistiques globales
+                    </div>
+                </div>
+            );
+        }
+
+        if (user) {
+            return (
+                <div className="hero-content">
+                    <h1>Bienvenue {user.firstName}</h1>
+                    <p>Vous êtes connecté à votre espace personnel. Déclarez une perte ou consultez vos déclarations existantes en quelques clics.</p>
+                    <div className="hero-buttons">
+                        <button 
+                            onClick={handleDeclareLoss}
+                            className="hero-btn primary-btn"
+                        >
+                            Déclarer une perte
+                        </button>
+                        <Link to="/user-dashboard" className="hero-btn secondary-btn">
+                            Accéder à mon tableau de bord
                         </Link>
                     </div>
                 </div>
             );
         }
 
+        // Page d'accueil pour les visiteurs non connectés
         return (
             <div className="hero-content">
-                <h1>Bienvenue {user?.firstName || 'sur la plateforme'}</h1>
-                <p>Vous êtes connecté à votre espace personnel. Déclarez une perte ou consultez vos déclarations existantes en quelques clics.</p>
+                <h1>Déclaration de Perte en Ligne</h1>
+                <p>Simplifiez vos démarches administratives. Déclarez vos objets perdus ou personnes disparues en quelques clics et suivez l'avancement de votre dossier en temps réel.</p>
                 <div className="hero-buttons">
                     <button 
                         onClick={handleDeclareLoss}
@@ -91,20 +109,12 @@ function HomePage() {
                     >
                         Déclarer une perte
                     </button>
-                    {user ? (
-                        <Link to="/user-dashboard" className="hero-btn secondary-btn">
-                            Accéder à mon tableau de bord
-                        </Link>
-                    ) : (
-                        <>
-                            <Link to="/auth" className="hero-btn secondary-btn">
-                                Se connecter
-                            </Link>
-                            <Link to="/auth?mode=register" className="hero-btn secondary-btn">
-                                S'inscrire
-                            </Link>
-                        </>
-                    )}
+                    <Link to="/auth" className="hero-btn secondary-btn">
+                        Se connecter
+                    </Link>
+                    <Link to="/auth?mode=register" className="hero-btn secondary-btn">
+                        S'inscrire
+                    </Link>
                 </div>
             </div>
         );

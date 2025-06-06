@@ -23,10 +23,13 @@
 
 .auth-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 2rem;
+    position: relative;
+    padding-top: 1rem;
 }
 
 .auth-header h2 {
+    margin: 1rem 0;
     color: #2c3e50;
     font-size: 2rem;
     margin-bottom: 10px;
@@ -34,7 +37,8 @@
 }
 
 .auth-header p {
-    color: #7f8c8d;
+    color: #666;
+    margin-bottom: 1rem;
     font-size: 1rem;
 }
 
@@ -280,4 +284,29 @@
 .btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: rgb(255, 244, 91);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.back-btn:hover {
+    color: #ffd700;
+    transform: translateX(-3px);
+    background-color: rgba(255, 244, 91, 0.1);
 } 

@@ -65,9 +65,15 @@ export const createDeclaration = asyncHandler(async (req, res) => {
             
             console.log('Données de la personne parsées:', personDetails);
             
+            // Vérifier que les champs requis sont présents
+            if (!personDetails.firstName || !personDetails.lastName) {
+                res.status(400);
+                throw new Error('Le nom et le prénom sont requis pour une déclaration de personne disparue');
+            }
+            
             declarationData.personDetails = {
-                firstName: personDetails.firstName,
-                lastName: personDetails.lastName,
+                firstName: personDetails.firstName.trim(),
+                lastName: personDetails.lastName.trim(),
                 dateOfBirth: personDetails.dateOfBirth,
                 gender: personDetails.gender,
                 height: personDetails.height,
@@ -78,6 +84,8 @@ export const createDeclaration = asyncHandler(async (req, res) => {
                 medicalConditions: personDetails.medicalConditions,
                 contactInfo: personDetails.contactInfo
             };
+
+            console.log('Données de la personne préparées pour la sauvegarde:', declarationData.personDetails);
         }
 
         // Gérer les photos si présentes

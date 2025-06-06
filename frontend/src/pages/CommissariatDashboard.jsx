@@ -6,8 +6,8 @@ import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr'; // Importer la locale française pour dayjs
 import '../styles/CommissariatDashboard.css'; // Import du CSS
-import { Link, useLocation } from 'react-router-dom';
-import { FaHome, FaList, FaChartBar, FaCog, FaBell } from 'react-icons/fa';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { FaHome, FaChartBar } from 'react-icons/fa';
 import NotificationCounter from '../components/common/NotificationCounter';
 import ReceiptGenerator from '../components/declaration/ReceiptGenerator';
 dayjs.locale('fr');
@@ -27,6 +27,17 @@ function CommissariatDashboard() {
     const [activeSidebarTab, setActiveSidebarTab] = useState('dashboard');
     const [searchQuery, setSearchQuery] = useState('');
     const location = useLocation();
+    const navigate = useNavigate();
+
+    // Détecter l'onglet actif en fonction de l'URL
+    useEffect(() => {
+        const path = location.pathname;
+        if (path === '/commissariat-dashboard') {
+            setActiveSidebarTab('dashboard');
+        } else if (path === '/commissariat-dashboard/statistics') {
+            setActiveSidebarTab('statistics');
+        }
+    }, [location.pathname]);
 
     const fetchCommissariatDeclarations = async () => {
         try {
@@ -309,7 +320,7 @@ function CommissariatDashboard() {
                                                     <>
                                                         <p><strong>Nom:</strong> {declaration.personDetails?.lastName || 'Non spécifié'}</p>
                                                         <p><strong>Prénom:</strong> {declaration.personDetails?.firstName || 'Non spécifié'}</p>
-                                                        <p><strong>Date de naissance:</strong> {dayjs(declaration.personDetails?.dateOfBirth).format('DD MMMM YYYY') || 'Non spécifiée'}</p>
+                                                        <p><strong>Date de naissance:</strong> {declaration.personDetails?.dateOfBirth ? dayjs(declaration.personDetails.dateOfBirth).format('DD MMMM YYYY') : 'Non spécifiée'}</p>
                                                         {declaration.personDetails?.gender && <p><strong>Genre:</strong> {declaration.personDetails.gender}</p>}
                                                         <p><strong>Dernier lieu vu:</strong> {declaration.personDetails?.lastSeenLocation || declaration.location}</p>
                                                     </>
@@ -371,26 +382,6 @@ function CommissariatDashboard() {
                         </div>
                     </div>
                 );
-            case 'notifications':
-                return (
-                    <div className="notifications-container">
-                        <h2>Notifications</h2>
-                        <div className="notifications-list">
-                            {/* Contenu des notifications */}
-                            <p>Vos notifications apparaîtront ici</p>
-                        </div>
-                    </div>
-                );
-            case 'settings':
-                return (
-                    <div className="settings-container">
-                        <h2>Paramètres</h2>
-                        <div className="settings-form">
-                            {/* Formulaire des paramètres */}
-                            <p>Les paramètres de votre commissariat apparaîtront ici</p>
-                        </div>
-                    </div>
-                );
             default:
                 return null;
         }
@@ -417,37 +408,22 @@ function CommissariatDashboard() {
                 <nav>
                     <ul className="sidebar-menu">
                         <li>
-                            <button 
-                                className={`sidebar-link ${activeSidebarTab === 'dashboard' ? 'active' : ''}`}
+                            <Link 
+                                to="/commissariat-dashboard" 
+                                className={`sidebar-link ${location.pathname === '/commissariat-dashboard' ? 'active' : ''}`}
                                 onClick={() => setActiveSidebarTab('dashboard')}
                             >
                                 <FaHome /> Tableau de bord
-                            </button>
+                            </Link>
                         </li>
                         <li>
-                            <button 
-                                className={`sidebar-link ${activeSidebarTab === 'statistics' ? 'active' : ''}`}
+                            <Link 
+                                to="/commissariat-dashboard/statistics" 
+                                className={`sidebar-link ${location.pathname === '/commissariat-dashboard/statistics' ? 'active' : ''}`}
                                 onClick={() => setActiveSidebarTab('statistics')}
                             >
                                 <FaChartBar /> Statistiques
-                            </button>
-                        </li>
-                        <li>
-                            <button 
-                                className={`sidebar-link ${activeSidebarTab === 'notifications' ? 'active' : ''}`}
-                                onClick={() => setActiveSidebarTab('notifications')}
-                            >
-                                <FaBell /> Notifications
-                                <NotificationCounter />
-                            </button>
-                        </li>
-                        <li>
-                            <button 
-                                className={`sidebar-link ${activeSidebarTab === 'settings' ? 'active' : ''}`}
-                                onClick={() => setActiveSidebarTab('settings')}
-                            >
-                                <FaCog /> Paramètres
-                            </button>
+                            </Link>
                         </li>
                     </ul>
                 </nav>
@@ -479,7 +455,7 @@ function CommissariatDashboard() {
                                 <>
                                     <p><strong>Nom:</strong> {selectedDeclaration.personDetails?.lastName || 'Non spécifié'}</p>
                                     <p><strong>Prénom:</strong> {selectedDeclaration.personDetails?.firstName || 'Non spécifié'}</p>
-                                    <p><strong>Date de naissance:</strong> {dayjs(selectedDeclaration.personDetails?.dateOfBirth).format('DD MMMM YYYY') || 'Non spécifiée'}</p>
+                                    <p><strong>Date de naissance:</strong> {selectedDeclaration.personDetails?.dateOfBirth ? dayjs(selectedDeclaration.personDetails.dateOfBirth).format('DD MMMM YYYY') : 'Non spécifiée'}</p>
                                     {selectedDeclaration.personDetails?.gender && <p><strong>Genre:</strong> {selectedDeclaration.personDetails.gender}</p>}
                                     <p><strong>Dernier lieu vu:</strong> {selectedDeclaration.personDetails?.lastSeenLocation || selectedDeclaration.location}</p>
                                 </>
@@ -525,18 +501,6 @@ function CommissariatDashboard() {
                                 <p><strong>Adresse:</strong> {selectedDeclaration.commissariat.address}</p>
                                 <p><strong>Email:</strong> {selectedDeclaration.commissariat.email}</p>
                                 <p><strong>Téléphone:</strong> {selectedDeclaration.commissariat.phone}</p>
-                            </div>
-                        )}
-
-                        {/* Bouton de refus pour les déclarations en attente */}
-                        {selectedDeclaration.status === 'En attente' && (
-                            <div className="action-buttons">
-                                <button 
-                                    className="btn reject-btn"
-                                    onClick={() => setShowRejectModal(true)}
-                                >
-                                    Refuser la déclaration
-                                </button>
                             </div>
                         )}
 
@@ -605,12 +569,12 @@ function CommissariatDashboard() {
 
                         {/* Boutons d'action selon le statut */}
                         <div className="modal-footer">
-                            {selectedDeclaration.status === 'Refusée' && (
+                            {selectedDeclaration.status === 'En attente' && (
                                 <button 
-                                    onClick={() => handleDeleteDeclaration(selectedDeclaration._id)}
-                                    className="btn delete-btn"
+                                    className="btn reject-btn"
+                                    onClick={() => setShowRejectModal(true)}
                                 >
-                                    Supprimer la déclaration
+                                    Refuser la déclaration
                                 </button>
                             )}
                         </div>

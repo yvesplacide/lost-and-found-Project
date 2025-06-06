@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext'; // Notre hook d'authentification
 import { toast } from 'react-toastify';
+import { IoArrowBack } from 'react-icons/io5';
 import '../styles/Auth.css'; // Import du nouveau CSS
 
 
@@ -279,6 +280,13 @@ function AuthPage() {
         <div className="auth-container">
             <div className="auth-card">
                 <div className="auth-header">
+                    <button 
+                        onClick={() => navigate('/')} 
+                        className="back-btn"
+                        title="Retour à l'accueil"
+                    >
+                        ←
+                    </button>
                     <h2>{isRegistering ? "Inscription" : "Connexion"}</h2>
                     <p>
                         {isRegistering 

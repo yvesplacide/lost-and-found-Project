@@ -60,28 +60,26 @@ function DeclarationForm({ onSubmitSuccess }) {
 
             // Créer un FormData pour l'upload de fichiers et les autres champs
             const formData = new FormData();
-            for (const key in data) {
-                if (key === 'photos' && data[key] && data[key].length > 0) {
-                    // Ajouter chaque fichier individuellement
-                    for (let i = 0; i < data[key].length; i++) {
-                        formData.append('photos', data[key][i]);
-                    }
-                } else if (typeof data[key] === 'object' && data[key] !== null) {
-                    // Pour les objets imbriqués comme objectDetails ou personDetails, stringifier
-                    console.log(`Données de ${key} avant stringification:`, data[key]);
-                    formData.append(key, JSON.stringify(data[key]));
-                } else {
-                    formData.append(key, data[key]);
-                }
-            }
             
-            // Corriger l'envoi des détails spécifiques comme objet JSON stringifié
+            // Ajouter les champs de base
+            formData.append('declarationType', data.declarationType);
+            formData.append('declarationDate', data.declarationDate);
+            formData.append('location', data.location);
+            formData.append('description', data.description);
+            formData.append('commissariat', data.commissariat);
+
+            // Ajouter les détails spécifiques selon le type de déclaration
             if (data.declarationType === 'objet' && data.objectDetails) {
-                console.log('Données de l\'objet avant envoi:', data.objectDetails);
-                formData.set('objectDetails', JSON.stringify(data.objectDetails));
+                formData.append('objectDetails', JSON.stringify(data.objectDetails));
             } else if (data.declarationType === 'personne' && data.personDetails) {
-                console.log('Données de la personne avant envoi:', data.personDetails);
-                formData.set('personDetails', JSON.stringify(data.personDetails));
+                formData.append('personDetails', JSON.stringify(data.personDetails));
+            }
+
+            // Ajouter les photos si présentes
+            if (data.photos && data.photos.length > 0) {
+                for (let i = 0; i < data.photos.length; i++) {
+                    formData.append('photos', data.photos[i]);
+                }
             }
 
             console.log('FormData avant envoi:');
@@ -89,7 +87,7 @@ function DeclarationForm({ onSubmitSuccess }) {
                 console.log(pair[0] + ': ' + pair[1]);
             }
 
-            // Changer le Content-Type pour les requêtes FormData
+            // Envoyer la requête
             const response = await api.post('/declarations', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -131,13 +129,15 @@ function DeclarationForm({ onSubmitSuccess }) {
 
                 <div className="form-group">
                     <label htmlFor="declarationDate">Date de la perte/disparition</label>
-                    <input
-                        type="datetime-local"
-                        id="declarationDate"
-                        {...register('declarationDate', { required: 'La date est requise' })}
-                        max={dayjs().format('YYYY-MM-DDTHH:mm')}
-                        className="form-control"
-                    />
+                    <div className="date-input-container">
+                        <input
+                            type="datetime-local"
+                            id="declarationDate"
+                            {...register('declarationDate', { required: 'La date est requise' })}
+                            max={dayjs().format('YYYY-MM-DDTHH:mm')}
+                            className="form-control"
+                        />
+                    </div>
                     {errors.declarationDate && <span className="error-message">{errors.declarationDate.message}</span>}
                 </div>
 
@@ -295,13 +295,15 @@ function DeclarationForm({ onSubmitSuccess }) {
                         </div>
                         <div className="form-group">
                             <label htmlFor="personDetails.dateOfBirth">Date de naissance</label>
-                            <input
-                                type="date"
-                                id="personDetails.dateOfBirth"
-                                {...register('personDetails.dateOfBirth', { required: 'La date de naissance est requise' })}
-                                max={dayjs().format('YYYY-MM-DD')}
-                                className="form-control"
-                            />
+                            <div className="date-input-container">
+                                <input
+                                    type="date"
+                                    id="personDetails.dateOfBirth"
+                                    {...register('personDetails.dateOfBirth', { required: 'La date de naissance est requise' })}
+                                    max={dayjs().format('YYYY-MM-DD')}
+                                    className="form-control"
+                                />
+                            </div>
                             {errors.personDetails?.dateOfBirth && <span className="error-message">{errors.personDetails.dateOfBirth.message}</span>}
                         </div>
                         <div className="form-group">

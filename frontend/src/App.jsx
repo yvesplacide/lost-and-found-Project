@@ -19,6 +19,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import ProtectedRoute from './utils/ProtectedRoute';
 
 import './index.css'; // Pour les styles globaux (ou App.css si vous en créez un)
+import './styles/DateInput.css';
 
 function App() {
   return (
@@ -37,7 +38,7 @@ function App() {
           {/* Routes Protégées pour les Agents de Commissariat */}
           <Route path="/commissariat-dashboard" element={<ProtectedRoute allowedRoles={['commissariat_agent']}><CommissariatDashboard /></ProtectedRoute>} />
           <Route path="/commissariat-dashboard/declarations" element={<ProtectedRoute allowedRoles={['commissariat_agent']}><CommissariatDeclarations /></ProtectedRoute>} />
-          <Route path="/commissariat-dashboard/notifications" element={<ProtectedRoute allowedRoles={['commissariat_agent']}><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/commissariat-dashboard/statistics" element={<ProtectedRoute allowedRoles={['commissariat_agent']}><CommissariatDashboard /></ProtectedRoute>} />
           {/* Ajoutez d'autres routes spécifiques au commissariat ici */}
 
           {/* Routes Protégées pour les Administrateurs */}

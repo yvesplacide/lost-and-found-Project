@@ -1,0 +1,101 @@
+/* Styles pour les champs de type date et datetime-local */
+input[type="date"],
+input[type="datetime-local"] {
+    position: relative;
+    padding-right: 30px;
+    cursor: pointer;
+    background-color: white;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    height: 38px;
+    width: 100%;
+}
+
+/* Style pour l'icône native du calendrier */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    opacity: 1;
+    filter: brightness(0); /* Rend l'icône noire */
+}
+
+/* Style pour Firefox */
+input[type="date"]::-moz-calendar-picker-indicator,
+input[type="datetime-local"]::-moz-calendar-picker-indicator {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    opacity: 1;
+}
+
+/* Style pour Edge */
+input[type="date"]::-ms-clear,
+input[type="datetime-local"]::-ms-clear {
+    display: none;
+}
+
+/* Style pour le conteneur du champ date */
+.date-input-container {
+    position: relative;
+    width: 100%;
+}
+
+.date-input-container input[type="date"],
+.date-input-container input[type="datetime-local"] {
+    width: 100%;
+    padding-right: 35px;
+    background-color: white;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    height: 38px;
+}
+
+.date-input-container::after {
+    content: "📅";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 16px;
+}
+
+/* Masquer l'icône native du calendrier */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+/* Style pour Firefox */
+input[type="date"]::-moz-calendar-picker-indicator,
+input[type="datetime-local"]::-moz-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+/* Style pour Edge */
+input[type="date"]::-ms-clear,
+input[type="datetime-local"]::-ms-clear {
+    display: none;
+} 

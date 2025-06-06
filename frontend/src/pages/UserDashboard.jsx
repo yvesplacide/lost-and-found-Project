@@ -51,9 +51,15 @@ function UserDashboard() {
     const openDetailsModal = (declaration) => {
         console.log('Déclaration complète:', declaration);
         console.log('Type de déclaration:', declaration.declarationType);
-        console.log('Détails de l\'objet:', declaration.objectDetails);
-        console.log('Catégorie:', declaration.objectCategory);
-        console.log('Nom:', declaration.objectName);
+        if (declaration.declarationType === 'objet') {
+            console.log('Détails de l\'objet:', declaration.objectDetails);
+            console.log('Catégorie:', declaration.objectDetails?.objectCategory);
+            console.log('Nom:', declaration.objectDetails?.objectName);
+        } else if (declaration.declarationType === 'personne') {
+            console.log('Détails de la personne:', declaration.personDetails);
+            console.log('Nom:', declaration.personDetails?.lastName);
+            console.log('Prénom:', declaration.personDetails?.firstName);
+        }
         setSelectedDeclaration(declaration);
     };
 
@@ -354,31 +360,24 @@ function UserDashboard() {
                             {selectedDeclaration.declarationType === 'personne' && selectedDeclaration.personDetails && (
                                 <div className="person-details">
                                     <h4>Détails de la personne disparue</h4>
-                                    <p><strong>Nom:</strong> {selectedDeclaration.personDetails.lastName}</p>
-                                    <p><strong>Prénom:</strong> {selectedDeclaration.personDetails.firstName}</p>
-                                    <p><strong>Date de naissance:</strong> {dayjs(selectedDeclaration.personDetails.dateOfBirth).format('DD MMMM YYYY')}</p>
-                                    <p><strong>Âge:</strong> {selectedDeclaration.personDetails.age} ans</p>
-                                    <p><strong>Genre:</strong> {selectedDeclaration.personDetails.gender}</p>
+                                    <p><strong>Nom:</strong> {selectedDeclaration.personDetails.lastName || 'Non spécifié'}</p>
+                                    <p><strong>Prénom:</strong> {selectedDeclaration.personDetails.firstName || 'Non spécifié'}</p>
+                                    <p><strong>Date de naissance:</strong> {selectedDeclaration.personDetails.dateOfBirth ? dayjs(selectedDeclaration.personDetails.dateOfBirth).format('DD MMMM YYYY') : 'Non spécifiée'}</p>
+                                    <p><strong>Genre:</strong> {selectedDeclaration.personDetails.gender || 'Non spécifié'}</p>
                                     {selectedDeclaration.personDetails.height && (
                                         <p><strong>Taille:</strong> {selectedDeclaration.personDetails.height} cm</p>
                                     )}
                                     {selectedDeclaration.personDetails.weight && (
                                         <p><strong>Poids:</strong> {selectedDeclaration.personDetails.weight} kg</p>
                                     )}
-                                    {selectedDeclaration.personDetails.clothing && (
-                                        <p><strong>Vêtements:</strong> {selectedDeclaration.personDetails.clothing}</p>
+                                    {selectedDeclaration.personDetails.clothingDescription && (
+                                        <p><strong>Description des vêtements:</strong> {selectedDeclaration.personDetails.clothingDescription}</p>
                                     )}
                                     {selectedDeclaration.personDetails.lastSeenLocation && (
                                         <p><strong>Dernier lieu vu:</strong> {selectedDeclaration.personDetails.lastSeenLocation}</p>
                                     )}
-                                    {selectedDeclaration.personDetails.lastSeenDate && (
-                                        <p><strong>Dernière date de vue:</strong> {dayjs(selectedDeclaration.personDetails.lastSeenDate).format('DD MMMM YYYY à HH:mm')}</p>
-                                    )}
-                                    {selectedDeclaration.personDetails.medicalConditions && (
-                                        <p><strong>Conditions médicales:</strong> {selectedDeclaration.personDetails.medicalConditions}</p>
-                                    )}
-                                    {selectedDeclaration.personDetails.contactInfo && (
-                                        <p><strong>Contact d'urgence:</strong> {selectedDeclaration.personDetails.contactInfo}</p>
+                                    {selectedDeclaration.personDetails.distinguishingMarks && (
+                                        <p><strong>Signes distinctifs:</strong> {selectedDeclaration.personDetails.distinguishingMarks}</p>
                                     )}
                                 </div>
                             )}
@@ -407,6 +406,7 @@ function UserDashboard() {
                                 <div className="receipt-info">
                                     <p>Récépissé N° {selectedDeclaration.receiptNumber}</p>
                                     <p>Établi le {dayjs(selectedDeclaration.receiptDate).format('DD MMMM YYYY')}</p>
+                                    <p>Traîté le {dayjs(selectedDeclaration.processedAt).format('DD MMMM YYYY à HH:mm')}</p>
                                     <button 
                                         onClick={() => handleDownloadReceipt(selectedDeclaration)}
                                         className="btn primary-btn"
