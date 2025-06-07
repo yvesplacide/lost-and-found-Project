@@ -44,36 +44,100 @@ const DeclarationSchema = mongoose.Schema({
     personDetails: {
         firstName: {
             type: String,
-            required: [true, 'Le prénom est requis']
+            required: function() {
+                return this.declarationType === 'personne';
+            },
+            validate: {
+                validator: function(v) {
+                    return this.declarationType !== 'personne' || (v && v.trim().length > 0);
+                },
+                message: 'Le prénom est requis pour une déclaration de personne'
+            }
         },
         lastName: {
             type: String,
-            required: [true, 'Le nom est requis']
+            required: function() {
+                return this.declarationType === 'personne';
+            },
+            validate: {
+                validator: function(v) {
+                    return this.declarationType !== 'personne' || (v && v.trim().length > 0);
+                },
+                message: 'Le nom est requis pour une déclaration de personne'
+            }
         },
         dateOfBirth: {
             type: Date,
-            required: [true, 'La date de naissance est requise']
+            required: function() {
+                return this.declarationType === 'personne';
+            },
+            validate: {
+                validator: function(v) {
+                    return this.declarationType !== 'personne' || v;
+                },
+                message: 'La date de naissance est requise pour une déclaration de personne'
+            }
         },
         gender: {
             type: String,
             enum: ['Masculin', 'Féminin', 'Autre'],
-            required: [true, 'Le genre est requis']
+            required: function() {
+                return this.declarationType === 'personne';
+            },
+            validate: {
+                validator: function(v) {
+                    return this.declarationType !== 'personne' || v;
+                },
+                message: 'Le genre est requis pour une déclaration de personne'
+            }
         },
         height: {
             type: Number,
-            required: [true, 'La taille est requise']
+            required: function() {
+                return this.declarationType === 'personne';
+            },
+            validate: {
+                validator: function(v) {
+                    return this.declarationType !== 'personne' || v;
+                },
+                message: 'La taille est requise pour une déclaration de personne'
+            }
         },
         weight: {
             type: Number,
-            required: [true, 'Le poids est requis']
+            required: function() {
+                return this.declarationType === 'personne';
+            },
+            validate: {
+                validator: function(v) {
+                    return this.declarationType !== 'personne' || v;
+                },
+                message: 'Le poids est requis pour une déclaration de personne'
+            }
         },
         clothingDescription: {
             type: String,
-            required: [true, 'La description des vêtements est requise']
+            required: function() {
+                return this.declarationType === 'personne';
+            },
+            validate: {
+                validator: function(v) {
+                    return this.declarationType !== 'personne' || (v && v.trim().length > 0);
+                },
+                message: 'La description des vêtements est requise pour une déclaration de personne'
+            }
         },
         lastSeenLocation: {
             type: String,
-            required: [true, 'Le dernier lieu vu est requis']
+            required: function() {
+                return this.declarationType === 'personne';
+            },
+            validate: {
+                validator: function(v) {
+                    return this.declarationType !== 'personne' || (v && v.trim().length > 0);
+                },
+                message: 'Le dernier lieu vu est requis pour une déclaration de personne'
+            }
         },
         distinguishingMarks: String,
         medicalConditions: String,
