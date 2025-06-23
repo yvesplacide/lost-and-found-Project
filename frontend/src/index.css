@@ -455,3 +455,9 @@ body {
 .modal-content .photos-section .photo-grid {
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* Plus petites images dans la modal */
 }
+
+.header-nav-flex {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}

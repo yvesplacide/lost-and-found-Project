@@ -47,10 +47,15 @@ export const AuthProvider = ({ children }) => {
         loadUser();
     }, []); // S'exécute une seule fois au montage du composant
 
-    const login = async (email, password) => {
+    const login = async (email, password, selectedRole) => {
         try {
             setLoading(true);
             const data = await authService.login({ email, password });
+            if (selectedRole && data.role !== selectedRole) {
+                setLoading(false);
+                toast.error("Vous n'êtes pas autorisé à vous connecter avec ce rôle.");
+                return null;
+            }
             setUser(data);
             setLoading(false);
             return data;

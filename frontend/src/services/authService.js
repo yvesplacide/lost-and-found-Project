@@ -6,7 +6,9 @@ const register = async (userData) => {
     try {
         const response = await api.post('/auth/register', userData);
         if (response.data.token) {
-            Cookies.set('token', response.data.token, { expires: 7 }); // Stocke le token pour 7 jours
+            // Créer une date d'expiration à 1 heure dans le futur
+            const expirationDate = new Date(new Date().getTime() + 3600000);
+            Cookies.set('token', response.data.token, { expires: expirationDate });
             // Optionnel: Stocker les infos utilisateur aussi si nécessaire, mais le token contient déjà le rôle
             // localStorage.setItem('user', JSON.stringify(response.data));
         }
@@ -20,7 +22,9 @@ const login = async (userData) => {
     try {
         const response = await api.post('/auth/login', userData);
         if (response.data.token) {
-            Cookies.set('token', response.data.token, { expires: 7 }); // Stocke le token pour 7 jours
+            // Créer une date d'expiration à 1 heure dans le futur
+            const expirationDate = new Date(new Date().getTime() + 3600000);
+            Cookies.set('token', response.data.token, { expires: expirationDate });
             // Optionnel: Stocker les infos utilisateur
             // localStorage.setItem('user', JSON.stringify(response.data));
         }
@@ -47,6 +51,27 @@ const logout = () => {
                 caches.delete(cacheName);
             });
         });
+    }
+
+    // Réinitialiser tous les formulaires de la page
+    const forms = document.getElementsByTagName('form');
+    for (let form of forms) {
+        form.reset();
+    }
+
+    // Réinitialiser tous les champs input, textarea et select
+    const inputs = document.getElementsByTagName('input');
+    const textareas = document.getElementsByTagName('textarea');
+    const selects = document.getElementsByTagName('select');
+
+    for (let input of inputs) {
+        input.value = '';
+    }
+    for (let textarea of textareas) {
+        textarea.value = '';
+    }
+    for (let select of selects) {
+        select.selectedIndex = 0;
     }
 };
 

@@ -109,12 +109,6 @@ function HomePage() {
                     >
                         Déclarer une perte
                     </button>
-                    <Link to="/auth" className="hero-btn secondary-btn">
-                        Se connecter
-                    </Link>
-                    <Link to="/auth?mode=register" className="hero-btn secondary-btn">
-                        S'inscrire
-                    </Link>
                 </div>
             </div>
         );

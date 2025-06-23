@@ -2,7 +2,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = 'http://localhost:5000/api'; // L'URL de votre backend
+const API_BASE_URL = 'https://backend-final-project-m0pk.onrender.com/api'; // URL du backend déployé sur Render
 
 const api = axios.create({
     baseURL: API_BASE_URL,

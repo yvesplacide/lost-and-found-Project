@@ -173,9 +173,7 @@ function ReceiptGenerator({ declaration, onReceiptGenerated }) {
             const imgY = 0;
 
             pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
-            pdf.save(`recepisse_officiel_${receiptNumber}.pdf`);
-
-            // Nettoyer
+            // pdf.save(`recepisse_officiel_${receiptNumber}.pdf`); // Désactivé : ne pas télécharger automatiquement
             document.body.removeChild(receiptElement);
         } catch (error) {
             console.error('Erreur lors de la génération du récépissé:', error);

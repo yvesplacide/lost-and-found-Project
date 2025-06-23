@@ -9,6 +9,9 @@ import { FaHome, FaList, FaChartBar, FaCog, FaBell } from 'react-icons/fa';
 import NotificationCounter from '../components/common/NotificationCounter';
 import ReceiptGenerator from '../components/declaration/ReceiptGenerator';
 import '../styles/CommissariatDashboard.css';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { generateReceiptContent } from '../components/declaration/ReceiptGenerator';
 
 dayjs.locale('fr');
 
@@ -233,6 +236,39 @@ function CommissariatDeclarations() {
         }
     };
 
+    const handleDownloadReceipt = async (declaration) => {
+        try {
+            const receiptElement = document.createElement('div');
+            receiptElement.style.width = '210mm';
+            receiptElement.style.padding = '20mm';
+            receiptElement.style.backgroundColor = 'white';
+            receiptElement.style.fontFamily = 'Arial, sans-serif';
+            receiptElement.style.position = 'absolute';
+            receiptElement.style.left = '-9999px';
+            receiptElement.innerHTML = generateReceiptContent(declaration);
+            document.body.appendChild(receiptElement);
+            const canvas = await html2canvas(receiptElement, {
+                scale: 2,
+                useCORS: true,
+                logging: false
+            });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+            const imgX = (pdfWidth - imgWidth * ratio) / 2;
+            const imgY = 0;
+            pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+            pdf.save(`recepisse_officiel_${declaration.receiptNumber}.pdf`);
+            document.body.removeChild(receiptElement);
+        } catch (error) {
+            toast.error('Erreur lors du téléchargement du récépissé');
+        }
+    };
+
     return (
         <div className="dashboard commissariat-dashboard">
             {/* Sidebar */}
@@ -451,12 +487,12 @@ function CommissariatDeclarations() {
                                         {selectedDeclaration.photos.map((photo, index) => (
                                             <img 
                                                 key={index} 
-                                                src={`http://localhost:5000/uploads/${photo}`} 
+                                                src={`https://backend-final-project-m0pk.onrender.com/uploads/${photo}`} 
                                                 alt={`Photo ${index + 1}`} 
                                                 className="declaration-photo"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    openPhotoModal(`http://localhost:5000/uploads/${photo}`, e);
+                                                    openPhotoModal(`https://backend-final-project-m0pk.onrender.com/uploads/${photo}`, e);
                                                 }}
                                             />
                                         ))}
@@ -470,6 +506,7 @@ function CommissariatDeclarations() {
                                 {selectedDeclaration.receiptNumber ? (
                                     <div className="receipt-info">
                                         <p>Récépissé N° {selectedDeclaration.receiptNumber} établi le {dayjs(selectedDeclaration.receiptDate).format('DD/MM/YYYY')}</p>
+                                        <button onClick={() => handleDownloadReceipt(selectedDeclaration)} className="btn primary-btn" style={{marginTop: '10px'}}>Télécharger le récépissé</button>
                                         <p className="receipt-status">Le déclarant peut télécharger ce récépissé depuis son espace personnel</p>
                                     </div>
                                 ) : (

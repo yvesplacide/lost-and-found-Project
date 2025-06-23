@@ -22,6 +22,7 @@ function UserDashboard() {
     const [showDeclarationForm, setShowDeclarationForm] = useState(false);
     const [selectedPhoto, setSelectedPhoto] = useState(null);
     const [activeFilter, setActiveFilter] = useState('pending');
+    const [isDownloadingReceipt, setIsDownloadingReceipt] = useState(false);
 
     const fetchUserDeclarations = async () => {
         try {
@@ -93,6 +94,7 @@ function UserDashboard() {
 
     const handleDownloadReceipt = async (declaration) => {
         try {
+            setIsDownloadingReceipt(true);
             // Générer le PDF du récépissé
             const receiptElement = document.createElement('div');
             receiptElement.style.width = '210mm';
@@ -130,6 +132,8 @@ function UserDashboard() {
         } catch (error) {
             console.error('Erreur lors du téléchargement du récépissé:', error);
             toast.error('Erreur lors du téléchargement du récépissé');
+        } finally {
+            setIsDownloadingReceipt(false);
         }
     };
 
@@ -276,7 +280,7 @@ function UserDashboard() {
                                                 <p><strong>Prénom:</strong> {declaration.personDetails?.firstName || 'Non spécifié'}</p>
                                             </>
                                         )}
-                                        <p><strong>Commissariat:</strong> {declaration.commissariat?.name || 'Non assigné'}</p>
+                                        <p><strong>Commissariat:</strong> {declaration.commissariat ? `${declaration.commissariat.name}${declaration.commissariat.city ? ` (${declaration.commissariat.city})` : ''}` : 'Non assigné'}</p>
                                     </div>
 
                                     {declaration.photos && declaration.photos.length > 0 && (
@@ -284,7 +288,7 @@ function UserDashboard() {
                                             {declaration.photos.map((photo, index) => (
                                                 <img 
                                                     key={index} 
-                                                    src={`http://localhost:5000/uploads/${photo}`} 
+                                                    src={`https://backend-final-project-m0pk.onrender.com/uploads/${photo}`} 
                                                     alt={`Photo ${index + 1}`} 
                                                     className="declaration-photo"
                                                     onClick={(e) => {
@@ -318,7 +322,7 @@ function UserDashboard() {
                             <p><strong>Date:</strong> {dayjs(selectedDeclaration.declarationDate).format('DD MMMM YYYY à HH:mm')}</p>
                             <p><strong>Lieu:</strong> {selectedDeclaration.location}</p>
                             <p><strong>Description:</strong> {selectedDeclaration.description}</p>
-                            <p><strong>Commissariat:</strong> {selectedDeclaration.commissariat?.name || 'Non assigné'}</p>
+                            <p><strong>Commissariat:</strong> {selectedDeclaration.commissariat ? `${selectedDeclaration.commissariat.name}${selectedDeclaration.commissariat.city ? ` (${selectedDeclaration.commissariat.city})` : ''}` : 'Non assigné'}</p>
 
                             {/* Boutons d'action selon le statut */}
                             <div className="modal-footer">
@@ -390,7 +394,7 @@ function UserDashboard() {
                                     {selectedDeclaration.photos.map((photo, index) => (
                                         <img 
                                             key={index} 
-                                            src={`http://localhost:5000/uploads/${photo}`} 
+                                            src={`https://backend-final-project-m0pk.onrender.com/uploads/${photo}`} 
                                             alt={`Photo ${index + 1}`} 
                                             className="declaration-photo"
                                         />
@@ -410,6 +414,7 @@ function UserDashboard() {
                                     <button 
                                         onClick={() => handleDownloadReceipt(selectedDeclaration)}
                                         className="btn primary-btn"
+                                        disabled={isDownloadingReceipt}
                                     >
                                         Télécharger le récépissé
                                     </button>
@@ -425,7 +430,7 @@ function UserDashboard() {
                     <div className="photo-modal-content" onClick={e => e.stopPropagation()}>
                         <button className="modal-close-btn" onClick={closePhotoModal}>&times;</button>
                         <img 
-                            src={`http://localhost:5000/uploads/${selectedPhoto}`} 
+                            src={`https://backend-final-project-m0pk.onrender.com/uploads/${selectedPhoto}`} 
                             alt="Photo agrandie" 
                             className="enlarged-photo"
                         />
