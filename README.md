@@ -80,9 +80,12 @@ npm install
 ```bash
 # Dans le dossier backend
 npm run dev
-
+          &
 # Dans le dossier frontend
-npm start
+npm run dev
+        ou
+# A la racine du monorepo
+npm run dev // Grace a concurrently les deux projets seront lance simultannement
 ```
 
 ## Structure du Projet
