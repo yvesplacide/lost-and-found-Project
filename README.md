@@ -73,7 +73,7 @@ npm install
 4. Configurer les variables d'environnement
 
 - Créer un fichier `.env` dans le dossier backend
-- Ajouter les variables nécessaires (voir `.env.example`)
+- Ajouter les variables nécessaires
 
 5. Démarrer le serveur de développement
 
